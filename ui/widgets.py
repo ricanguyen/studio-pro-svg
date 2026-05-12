@@ -50,11 +50,11 @@ class PropertiesPanel(QFrame):
             btn.setStyleSheet(f"background-color: {c}; border-radius: 3px;")
             btn.clicked.connect(lambda checked, color=c: self.canvas.change_color(color))
             layout.addWidget(btn)
-        
-            btn_save = QPushButton("EXPORT SVG")
-            btn_save.setFixedHeight(45)
-            btn_save.setStyleSheet("background-color: #4BBEFF; color: black; font-weight: bold; margin-top: 10px;")
-            # Kết nối nút bấm với hàm xử lý file ở utils
-            btn_save.clicked.connect(lambda: SVGHandler.export_svg(self, self.canvas.scene))
-            self.layout().addWidget(btn_save)
-            layout.addStretch()
+        btn_save = QPushButton("EXPORT SVG")
+        btn_save.setFixedHeight(45)
+        btn_save.setStyleSheet("background-color: #4BBEFF; color: black; font-weight: bold; margin-top: 10px;")
+        # Kết nối nút bấm với hàm xử lý file ở utils
+        btn_save.clicked.connect(lambda: SVGHandler.export_svg(self, self.canvas.scene))
+        self.layout().addWidget(btn_save)
+        layout.addStretch()
+         
