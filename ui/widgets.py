@@ -50,7 +50,9 @@ class Toolbar(QFrame):
             ("cursor.svg", "select", "Select (V)"),
             ("square.svg", "rect", "Rectangle (R)"),
             ("circle.svg", "ellipse", "Ellipse (E)"),
-            ("minus.svg", "line", "Line (L)")
+            ("minus.svg", "line", "Line (L)"),
+            ("polygon.svg", "polygon", "Polygon (P)"),
+             ("text.svg", "text", "Text (P)")
         ]
         
         for icon_file, mode, tooltip in tools:
@@ -64,7 +66,7 @@ class Toolbar(QFrame):
             self.group.addButton(btn)
             if mode == "select":
                 btn.setChecked(True)
-                
+
             btn.clicked.connect(lambda checked, m=mode: self.canvas.set_mode(m))
             layout.addWidget(btn)
         
