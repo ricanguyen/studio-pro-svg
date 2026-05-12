@@ -1,34 +1,71 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QHBoxLayout, QFrame, QLabel
-from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QHBoxLayout, 
+                             QVBoxLayout, QFrame, QPushButton, QGraphicsView, QGraphicsScene, QGraphicsRectItem)
+from PyQt6.QtCore import Qt, QRectF
+from PyQt6.QtGui import QPen, QColor, QBrush
 
+# 1. Lớp quản lý vùng vẽ (Canvas)
+class PaintCanvas(QGraphicsView):
+    def __init__(self):
+        super().__init__()
+        self.scene = QGraphicsScene(0, 0, 800, 600)
+        self.setScene(self.scene)
+        self.setBackgroundBrush(QBrush(QColor("#1E1E1E"))) # Màu nền canvas
+        
+        self.current_item = None
+        self.start_point = None
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.start_point = self.mapToScene(event.pos())
+            # Tạo một hình chữ nhật tạm thời
+            self.current_item = QGraphicsRectItem()
+            self.current_item.setPen(QPen(QColor("#4BBEFF"), 2)) # Màu viền xanh như mockup
+            self.scene.addItem(self.current_item)
+
+    def mouseMoveEvent(self, event):
+        if self.current_item and self.start_point:
+            end_point = self.mapToScene(event.pos())
+            # Tính toán kích thước dựa trên vị trí chuột
+            rect = QRectF(self.start_point, end_point).normalized()
+            self.current_item.setRect(rect)
+
+    def mouseReleaseEvent(self, event):
+        self.current_item = None
+        self.start_point = None
+
+# 2. Cửa sổ chính của ứng dụng
 class SVGPaintApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Studio Pro - SVG Paint")
         self.resize(1100, 700)
 
-        # 1. Widget tổng và Layout ngang chính
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QHBoxLayout(central_widget)
-        main_layout.setContentsMargins(0, 0, 0, 0) # Sát viền
+        main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        # 2. Cột trái: Toolbar (Thanh công cụ)
+        # Cột trái: Toolbar
         self.toolbar = QFrame()
         self.toolbar.setFixedWidth(70)
         self.toolbar.setStyleSheet("background-color: #2D2D2D; border-right: 1px solid #3F3F3F;")
+        toolbar_layout = QVBoxLayout(self.toolbar)
+        toolbar_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        
+        btn_rect = QPushButton("Rect") # Nút vẽ hình chữ nhật
+        btn_rect.setFixedSize(50, 50)
+        btn_rect.setStyleSheet("background-color: #3D3D3D; color: white; border-radius: 5px;")
+        toolbar_layout.addWidget(btn_rect)
+        
         main_layout.addWidget(self.toolbar)
 
-        # 3. Vùng giữa: Canvas (Nơi vẽ hình)
-        self.canvas_area = QFrame()
-        self.canvas_area.setStyleSheet("background-color: #1E1E1E;")
-        canvas_label = QLabel("CANVAS AREA", self.canvas_area)
-        canvas_label.setStyleSheet("color: #555555; font-weight: bold;")
-        main_layout.addWidget(self.canvas_area, stretch=1) # Chiếm toàn bộ chỗ trống còn lại
+        # Vùng giữa: Canvas chuyên dụng
+        self.canvas = PaintCanvas()
+        main_layout.addWidget(self.canvas, stretch=1)
 
-        # 4. Cột phải: Properties (Chỉnh thông số)
+        # Cột phải: Properties
         self.properties_panel = QFrame()
         self.properties_panel.setFixedWidth(240)
         self.properties_panel.setStyleSheet("background-color: #2D2D2D; border-left: 1px solid #3F3F3F;")
@@ -36,6 +73,6 @@ class SVGPaintApp(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    demo = SVGPaintApp()
-    demo.show()
+    window = SVGPaintApp()
+    window.show()
     sys.exit(app.exec())
