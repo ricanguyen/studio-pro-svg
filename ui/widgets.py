@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QFrame, QVBoxLayout, QPushButton, QLabel
+from PyQt6.QtWidgets import QFrame, QSlider, QVBoxLayout, QPushButton, QLabel
 from PyQt6.QtCore import Qt
 from utils.file_handler import SVGHandler
 from PyQt6.QtWidgets import QFrame, QVBoxLayout, QPushButton, QLabel
@@ -12,6 +12,7 @@ from utils.file_handler import SVGHandler
 from PyQt6.QtWidgets import (QFrame, QVBoxLayout, QHBoxLayout, QPushButton, 
                              QLabel, QLineEdit, QColorDialog, QWidget,
                              QSpinBox, QComboBox) # Thêm QSpinBox và QComboBox
+
 
 class Toolbar(QFrame):
     def __init__(self, canvas):
@@ -80,7 +81,6 @@ class PropertiesPanel(QFrame):
         self.setFixedWidth(220)
         self.setObjectName("rightPanel")
         self.init_ui()
-        self.stroke_width_box.valueChanged.connect(self.canvas.set_stroke_width)
 
     def init_ui(self):
         layout = QVBoxLayout(self)
@@ -149,41 +149,66 @@ class PropertiesPanel(QFrame):
         stroke_prop_layout.setContentsMargins(0, 0, 0, 0)
         stroke_prop_layout.setSpacing(10)
 
-        # Cột bên trái: STROKE WIDTH
+        # --- PHẦN STROKE WIDTH (MINIMALIST) ---
         width_container = QWidget()
         width_v_layout = QVBoxLayout(width_container)
         width_v_layout.setContentsMargins(0, 0, 0, 0)
-        width_v_layout.addWidget(QLabel("<b style='color:#888; font-size: 9px;'>WIDTH</b>"))
+        width_v_layout.addWidget(QLabel("<b style='color:#888; font-size: 9px;'>STROKE WIDTH</b>"))
         
-        self.stroke_width_box = QSpinBox()
-        self.stroke_width_box.setRange(1, 20)      # Độ dày từ 1 đến 20px
-        self.stroke_width_box.setValue(2)          # Mặc định là 2
-        self.stroke_width_box.setSuffix(" px")     # Thêm đơn vị px cho chuyên nghiệp
-        self.stroke_width_box.setObjectName("strokeWidthBox")
-        # Kết nối logic: self.canvas.change_stroke_width (Bạn cần tạo hàm này ở canvas)
-        # self.stroke_width_box.valueChanged.connect(self.canvas.change_stroke_width)
+        # Dùng widget mới tự chế
+        self.stroke_width_widget = StrokeWidthWidget(
+            initial_value=2, 
+            on_change=self.canvas.set_stroke_width
+        )
+        width_v_layout.addWidget(self.stroke_width_widget)
         
-        width_v_layout.addWidget(self.stroke_width_box)
+        layout.addSpacing(15)
+        layout.addWidget(width_container)
+            # --- THÊM ĐƯỜNG KẺ NGANG Ở ĐÂY ---
+        separator = QFrame()
+        separator.setFixedHeight(1)  # Ép cứng chiều cao đúng 1 pixel
+        separator.setObjectName("separator")
+        layout.addWidget(separator)
+        # --- PHẦN STROKE PROPERTIES (WIDTH & STYLE) ---
+        stroke_prop_section = QWidget()
+        stroke_prop_layout = QHBoxLayout(stroke_prop_section)
+        stroke_prop_layout.setContentsMargins(0, 0, 0, 0)
+        stroke_prop_layout.setSpacing(10)
+        # --- PHẦN OPACITY (SLIDER) ---
+        opacity_container = QWidget()
+        opacity_v_layout = QVBoxLayout(opacity_container)
+        opacity_v_layout.setContentsMargins(0, 0, 0, 0)
+        opacity_v_layout.setSpacing(5)
 
-        # Cột bên phải: STROKE STYLE
-        style_container = QWidget()
-        style_v_layout = QVBoxLayout(style_container)
-        style_v_layout.setContentsMargins(0, 0, 0, 0)
-        style_v_layout.addWidget(QLabel("<b style='color:#888; font-size: 9px;'>STYLE</b>"))
+        # Header hàng Opacity (Text + % Value)
+        opacity_header_layout = QHBoxLayout()
+        opacity_label = QLabel("<b style='color:#888; font-size: 9px;'>OPACITY</b>")
+        self.opacity_value_label = QLabel("100%")
+        self.opacity_value_label.setStyleSheet("color: #FFFFFF; font-size: 10px;")
         
-        self.stroke_style_combo = QComboBox()
-        self.stroke_style_combo.addItems(["Solid", "Dash", "Dot", "Dash Dot"])
-        self.stroke_style_combo.setObjectName("strokeStyleCombo")
-        # self.stroke_style_combo.currentIndexChanged.connect(self.canvas.change_stroke_style)
+        opacity_header_layout.addWidget(opacity_label)
+        opacity_header_layout.addStretch()
+        opacity_header_layout.addWidget(self.opacity_value_label)
         
-        style_v_layout.addWidget(self.stroke_style_combo)
+        # Thanh trượt Opacity
+        self.opacity_slider = QSlider(Qt.Orientation.Horizontal)
+        self.opacity_slider.setRange(0, 100)
+        self.opacity_slider.setValue(100)
+        self.opacity_slider.setObjectName("opacitySlider")
+        
+        # Kết nối logic
+        self.opacity_slider.valueChanged.connect(self.update_opacity_logic)
 
-        stroke_prop_layout.addWidget(width_container)
-        stroke_prop_layout.addWidget(style_container)
+        opacity_v_layout.addLayout(opacity_header_layout)
+        opacity_v_layout.addWidget(self.opacity_slider)
         
-        layout.addSpacing(10)
-        layout.addWidget(stroke_prop_section)
-        layout.addStretch()
+        layout.addSpacing(15)
+        layout.addWidget(opacity_container)
+
+    # Hàm bổ trợ ngay trong PropertiesPanel để cập nhật Label và gọi Canvas
+    def update_opacity_logic(self, value):
+        self.opacity_value_label.setText(f"{value}%")
+        self.canvas.set_opacity(value)
 
 class ColorPickerWidget(QWidget):
     def __init__(self, initial_color="#FFFFFF", on_color_change=None):
@@ -237,3 +262,57 @@ class ColorPickerWidget(QWidget):
             self.update_button_color(self.current_color)
             if self.on_color_change:
                 self.on_color_change(self.current_color)
+
+class StrokeWidthWidget(QWidget):
+    def __init__(self, initial_value=2, on_change=None):
+        super().__init__()
+        self.on_change = on_change
+        self.value = initial_value
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(2) # Khoảng cách rất nhỏ giữa ô nhập và nút
+
+        # 1. Ô nhập số
+        self.input = QLineEdit(str(self.value))
+        self.input.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.input.setObjectName("strokeWidthInput")
+        self.input.textChanged.connect(self.handle_text_change)
+
+        # 2. Cột chứa 2 nút tăng giảm nằm dọc
+        button_container = QWidget()
+        button_layout = QVBoxLayout(button_container)
+        button_layout.setContentsMargins(0, 0, 0, 0)
+        button_layout.setSpacing(0)
+
+        self.btn_up = QPushButton("▲")
+        self.btn_down = QPushButton("▼")
+        
+        # Style cho nút nhỏ lại
+        for btn in [self.btn_up, self.btn_down]:
+            btn.setFixedSize(18, 13)
+            btn.setObjectName("widthStepBtn")
+
+        self.btn_up.clicked.connect(lambda: self.update_value(1))
+        self.btn_down.clicked.connect(lambda: self.update_value(-1))
+
+        button_layout.addWidget(self.btn_up)
+        button_layout.addWidget(self.btn_down)
+
+        layout.addWidget(self.input, 1)
+        layout.addWidget(button_container)
+
+    def update_value(self, delta):
+        new_val = max(1, min(20, self.value + delta))
+        if new_val != self.value:
+            self.value = new_val
+            self.input.setText(str(self.value))
+
+    def handle_text_change(self, text):
+        try:
+            val = int(text)
+            self.value = val
+            if self.on_change:
+                self.on_change(val)
+        except ValueError:
+            pass

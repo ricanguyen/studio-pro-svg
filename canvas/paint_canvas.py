@@ -90,3 +90,9 @@ class PaintCanvas(QGraphicsView):
                 pen.setWidth(width)
                 # Áp dụng lại bút mới
                 item.setPen(pen)
+    def set_opacity(self, value):
+        self.current_opacity = value / 100.0
+        
+        # Cập nhật ngay lập tức cho các đối tượng đang chọn
+        for item in self.scene.selectedItems():
+            item.setOpacity(self.current_opacity)
