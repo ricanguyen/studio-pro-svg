@@ -1,0 +1,161 @@
+/* Master Styles for Studio Pro SVG */
+
+/* General Widget Backgrounds */
+QMainWindow, QWidget#central {
+    background-color: #121212;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+/* Sidebar and Properties Panels */
+QFrame {
+    border: none;
+}
+
+/* Labels */
+QLabel {
+    color: #E0E0E0;
+    font-size: 11pt;
+}
+
+/* Custom Headers */
+QLabel#headerTitle {
+    color: #FFFFFF;
+    font-size: 14pt;
+    font-weight: bold;
+    padding-left: 10px;
+}
+
+QLabel#panelTitle {
+    color: #AAAAAA;
+    font-size: 9pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
+
+/* Buttons */
+QPushButton {
+    background-color: #2D2D2D;
+    color: #FFFFFF;
+    border: 1px solid #3F3F3F;
+    border-radius: 4px;
+    padding: 1px;
+    font-size: 10pt;
+}
+
+QPushButton:hover {
+    background-color: #3D3D3D;
+    border: 1px solid #4BBEFF;
+}
+
+QPushButton:pressed {
+    background-color: #1A1A1A;
+}
+
+/* Specific Button Styles */
+QPushButton#btnAction {
+    background-color: #4BBEFF;
+    color: #000000;
+    font-weight: bold;
+}
+
+QPushButton#btnAction:hover {
+    background-color: #3AA9E6;
+}
+
+QPushButton#btnClear {
+    background-color: #f39c12;
+    color: #FFFFFF;
+    font-weight: bold;
+}
+
+/* Tool Buttons (Square) */
+QPushButton#toolBtn {
+    min-width: 60px;
+    min-height: 45px;
+    background-color: #262626;
+}
+
+QPushButton#toolBtn:checked {
+    background-color: #4BBEFF;
+    color: #000000;
+    border: 1px solid #FFFFFF;
+}
+
+/* Color Circles/Rects */
+QPushButton#colorBtn {
+    border: 2px solid transparent;
+}
+
+QPushButton#colorBtn:hover {
+    border: 2px solid #FFFFFF;
+}
+
+/* Canvas View */
+QGraphicsView {
+    border: none;
+    background-color: #1E1E1E;
+}
+
+/* ScrollBars */
+QScrollBar:vertical {
+    background: #121212;
+    width: 10px;
+    margin: 0px;
+}
+
+QScrollBar::handle:vertical {
+    background: #333333;
+    min-height: 20px;
+    border-radius: 5px;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    border: none;
+    background: none;
+}
+
+/* Style cho các nút Menu trên Navbar */
+QPushButton#navButton {
+    color: #888888;
+    background-color: transparent; /* Trong suốt */
+    border: none;
+    border-bottom: 2px solid transparent; /* Tạo sẵn không gian viền nhưng ẩn đi */
+    font-size: 12px;
+    margin-left: 5px;
+    padding: 2px 5px;
+}
+
+QPushButton#navButton:hover {
+    color: #FFFFFF; /* Sáng lên khi rê chuột */
+}
+
+/* HIỆU ỨNG GẠCH CHÂN KHI CLICK */
+QPushButton#navButton:pressed {
+    color: #FFFFFF;
+    border-bottom: 2px solid #4BBEFF; /* Hiện gạch chân màu xanh dương khi nhấn */
+}
+/* Đường kẻ ngăn cách */
+QFrame#separator {
+    background-color: #333333; /* Chỉnh màu tối lại để trông chìm và tinh tế hơn */
+    border: none;
+    margin: 5px 0px 15px 0px;  
+}
+/* Logo SP ở góc trái */
+QLabel#logoLabel {
+    color: #FFFFFF;
+    font-size: 18pt;       /* Tăng kích thước chữ cho bự lên */
+    font-weight: 900;      /* In đậm hết cỡ (Extra Bold) */
+    background-color: #1A1A1A; /* Đổ nền tối hơn một chút để nổi bật khối logo */
+    border-radius: 8px;    /* Bo góc cho mềm mại */
+    margin-bottom: 10px;   /* Đẩy các nút bên dưới xích xuống 1 chút */
+}
+/* Giao diện cho Tooltip (Nhãn hướng dẫn khi rê chuột) */
+QToolTip {
+    background-color: #2D2D2D;
+    color: #FFFFFF;
+    border: 1px solid #4BBEFF;
+    border-radius: 4px;
+    padding: 4px;
+}
