@@ -67,3 +67,26 @@ class PaintCanvas(QGraphicsView):
             self.undo_stack.push(AddCommand(self.scene, self.current_item))
         super().mouseReleaseEvent(event)
         self.current_item = None
+    def change_stroke_color(self, color):
+        self.current_stroke_color = color
+        # Nếu có đối tượng đang chọn, đổi màu viền của nó ngay lập tức
+        for item in self.scene.selectedItems():
+            from models.commands import ColorCommand
+            # Bạn có thể mở rộng ColorCommand để xử lý cả Stroke
+            # Ở đây tạm thời set trực tiếp để test
+            pen = item.pen()
+            pen.setColor(QColor(color))
+            item.setPen(pen)
+
+    def set_stroke_width(self, width):
+        self.current_stroke_width = width
+        
+        # Logic: Nếu đang chọn đối tượng, cập nhật độ đậm ngay lập tức
+        selected_items = self.scene.selectedItems()
+        if selected_items:
+            for item in selected_items:
+                # Lấy bút hiện tại của item
+                pen = item.pen()
+                pen.setWidth(width)
+                # Áp dụng lại bút mới
+                item.setPen(pen)

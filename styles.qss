@@ -174,3 +174,53 @@ QLineEdit#hexInput:focus {
     border: 1px solid #4BBEFF; /* Sáng viền xanh khi click vào gõ */
     background-color: #121212;
 }
+/* Tìm và cập nhật đoạn này trong styles.qss */
+QLineEdit#hexInput {
+    background-color: #1E1E1E;
+    color: #FFFFFF;
+    border: 1px solid #3F3F3F;
+    border-radius: 4px;
+    padding: 4px 2px;
+    font-size: 10pt;
+    font-family: 'Consolas', monospace;
+    min-width: 40px; 
+}
+
+QLineEdit#hexInput:focus {
+    border: 1px solid #4BBEFF;
+    background-color: #121212;
+}
+/* Style cho QSpinBox (Width) và QComboBox (Style) */
+QSpinBox#strokeWidthBox, QComboBox#strokeStyleCombo {
+    background-color: #1E1E1E;
+    color: #FFFFFF;
+    border: 1px solid #3F3F3F;
+    border-radius: 4px;
+    padding: 4px;
+    min-height: 25px;
+}
+
+QSpinBox#strokeWidthBox:focus, QComboBox#strokeStyleCombo:focus {
+    border: 1px solid #4BBEFF;
+}
+
+/* Tùy chỉnh mũi tên của ComboBox */
+QComboBox::drop-down {
+    border: none;
+    width: 20px;
+}
+
+QComboBox::down-arrow {
+    image: url(img/down_arrow.svg); /* Nếu bạn có icon mũi tên, hoặc dùng ký tự mặc định */
+    width: 10px;
+    height: 10px;
+}
+
+/* Style cho danh sách xổ xuống của ComboBox */
+QComboBox QAbstractItemView {
+    background-color: #1E1E1E;
+    color: #FFFFFF;
+    selection-background-color: #4BBEFF;
+    selection-color: #000000;
+    border: 1px solid #3F3F3F;
+}

@@ -9,6 +9,9 @@ from PyQt6.QtWidgets import (QFrame, QVBoxLayout, QHBoxLayout, QPushButton,
 from PyQt6.QtGui import QPixmap, QIcon, QColor
 from PyQt6.QtCore import Qt, QSize
 from utils.file_handler import SVGHandler
+from PyQt6.QtWidgets import (QFrame, QVBoxLayout, QHBoxLayout, QPushButton, 
+                             QLabel, QLineEdit, QColorDialog, QWidget,
+                             QSpinBox, QComboBox) # Thêm QSpinBox và QComboBox
 
 class Toolbar(QFrame):
     def __init__(self, canvas):
@@ -77,6 +80,7 @@ class PropertiesPanel(QFrame):
         self.setFixedWidth(220)
         self.setObjectName("rightPanel")
         self.init_ui()
+        self.stroke_width_box.valueChanged.connect(self.canvas.set_stroke_width)
 
     def init_ui(self):
         layout = QVBoxLayout(self)
@@ -99,19 +103,86 @@ class PropertiesPanel(QFrame):
         btn_save.clicked.connect(lambda: SVGHandler.export_svg(self, self.canvas.scene))
         layout.addWidget(btn_save)
 
-        layout.addSpacing(20) # Khoảng cách trước bảng màu
-       # --- PHẦN MỚI: CHỌN MÀU (FILL COLOR) ---
-        color_title = QLabel("<b style='color:#AAAAAA; font-size: 10px;'>FILL COLOR</b>")
-        layout.addWidget(color_title)
+        layout.addSpacing(15) # Khoảng cách trước bảng màu
+       # --- PHẦN MÀU SẮC (FILL & STROKE SONG SONG) ---
+        color_section = QWidget()
+        color_layout = QHBoxLayout(color_section)
+        color_layout.setContentsMargins(0, 0, 0, 0)
+        color_layout.setSpacing(10)
 
-        # Gọi cái ColorPickerWidget vừa tạo ở trên
+        # Cột bên trái: FILL
+        fill_container = QWidget()
+        fill_v_layout = QVBoxLayout(fill_container)
+        fill_v_layout.setContentsMargins(0, 0, 0, 0)
+        fill_v_layout.addWidget(QLabel("<b style='color:#888; font-size: 9px;'>FILL</b>"))
         self.fill_picker = ColorPickerWidget(
             initial_color="#4BBEFF", 
             on_color_change=self.canvas.change_color
         )
-        layout.addWidget(self.fill_picker)
-        # ----------------------------------------
+        fill_v_layout.addWidget(self.fill_picker)
+
+        # Cột bên phải: STROKE
+        stroke_container = QWidget()
+        stroke_v_layout = QVBoxLayout(stroke_container)
+        stroke_v_layout.setContentsMargins(0, 0, 0, 0)
+        stroke_v_layout.addWidget(QLabel("<b style='color:#888; font-size: 9px;'>STROKE</b>"))
+        self.stroke_picker = ColorPickerWidget(
+            initial_color="#ADC6FF", 
+            on_color_change=self.canvas.change_stroke_color
+        )
+        stroke_v_layout.addWidget(self.stroke_picker)
+
+        # Thêm cả 2 vào layout ngang
+        color_layout.addWidget(fill_container)
+        color_layout.addWidget(stroke_container)
+
+        layout.addWidget(color_section)
+        # ----------------------------------------------
+       # --- THÊM ĐƯỜNG KẺ NGANG Ở ĐÂY ---
+        separator = QFrame()
+        separator.setFixedHeight(1)  # Ép cứng chiều cao đúng 1 pixel
+        separator.setObjectName("separator")
+        layout.addWidget(separator)
+        # --- PHẦN STROKE PROPERTIES (WIDTH & STYLE) ---
+        stroke_prop_section = QWidget()
+        stroke_prop_layout = QHBoxLayout(stroke_prop_section)
+        stroke_prop_layout.setContentsMargins(0, 0, 0, 0)
+        stroke_prop_layout.setSpacing(10)
+
+        # Cột bên trái: STROKE WIDTH
+        width_container = QWidget()
+        width_v_layout = QVBoxLayout(width_container)
+        width_v_layout.setContentsMargins(0, 0, 0, 0)
+        width_v_layout.addWidget(QLabel("<b style='color:#888; font-size: 9px;'>WIDTH</b>"))
         
+        self.stroke_width_box = QSpinBox()
+        self.stroke_width_box.setRange(1, 20)      # Độ dày từ 1 đến 20px
+        self.stroke_width_box.setValue(2)          # Mặc định là 2
+        self.stroke_width_box.setSuffix(" px")     # Thêm đơn vị px cho chuyên nghiệp
+        self.stroke_width_box.setObjectName("strokeWidthBox")
+        # Kết nối logic: self.canvas.change_stroke_width (Bạn cần tạo hàm này ở canvas)
+        # self.stroke_width_box.valueChanged.connect(self.canvas.change_stroke_width)
+        
+        width_v_layout.addWidget(self.stroke_width_box)
+
+        # Cột bên phải: STROKE STYLE
+        style_container = QWidget()
+        style_v_layout = QVBoxLayout(style_container)
+        style_v_layout.setContentsMargins(0, 0, 0, 0)
+        style_v_layout.addWidget(QLabel("<b style='color:#888; font-size: 9px;'>STYLE</b>"))
+        
+        self.stroke_style_combo = QComboBox()
+        self.stroke_style_combo.addItems(["Solid", "Dash", "Dot", "Dash Dot"])
+        self.stroke_style_combo.setObjectName("strokeStyleCombo")
+        # self.stroke_style_combo.currentIndexChanged.connect(self.canvas.change_stroke_style)
+        
+        style_v_layout.addWidget(self.stroke_style_combo)
+
+        stroke_prop_layout.addWidget(width_container)
+        stroke_prop_layout.addWidget(style_container)
+        
+        layout.addSpacing(10)
+        layout.addWidget(stroke_prop_section)
         layout.addStretch()
 
 class ColorPickerWidget(QWidget):
@@ -134,11 +205,15 @@ class ColorPickerWidget(QWidget):
         # 2. Ô nhập mã Hex
         self.hex_input = QLineEdit(self.current_color)
         self.hex_input.setObjectName("hexInput")
-        self.hex_input.setMaxLength(7) # Giới hạn 7 ký tự: #FFFFFF
+        self.hex_input.setMaxLength(10)
+
         self.hex_input.textChanged.connect(self.on_hex_typed)
 
         layout.addWidget(self.btn_color)
         layout.addWidget(self.hex_input)
+        
+        # ---> THÊM DÒNG NÀY ĐỂ ÉP CHÚNG NÓ GỌN VỀ BÊN TRÁI <---
+        layout.addStretch()
 
     def update_button_color(self, hex_color):
         # Cập nhật màu nền cho nút
