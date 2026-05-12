@@ -4,6 +4,11 @@ from utils.file_handler import SVGHandler
 from PyQt6.QtWidgets import QFrame, QVBoxLayout, QPushButton, QLabel
 from PyQt6.QtGui import QPixmap, QIcon  
 from PyQt6.QtCore import Qt, QSize      
+from PyQt6.QtWidgets import (QFrame, QVBoxLayout, QHBoxLayout, QPushButton, 
+                             QLabel, QLineEdit, QColorDialog, QWidget) # Thêm các module này
+from PyQt6.QtGui import QPixmap, QIcon, QColor
+from PyQt6.QtCore import Qt, QSize
+from utils.file_handler import SVGHandler
 
 class Toolbar(QFrame):
     def __init__(self, canvas):
@@ -95,16 +100,65 @@ class PropertiesPanel(QFrame):
         layout.addWidget(btn_save)
 
         layout.addSpacing(20) # Khoảng cách trước bảng màu
-        layout.addWidget(QLabel("<b style='color:white'>COLOR PALETTE</b>"))
+       # --- PHẦN MỚI: CHỌN MÀU (FILL COLOR) ---
+        color_title = QLabel("<b style='color:#AAAAAA; font-size: 10px;'>FILL COLOR</b>")
+        layout.addWidget(color_title)
 
-        # CÁC NÚT MÀU
-        colors = ["#FF5555", "#50FA7B", "#F1FA8C", "#BD93F9", "#FF79C6", "#FFFFFF"]
-        for c in colors:
-            btn = QPushButton()
-            btn.setObjectName("colorBtn")
-            btn.setFixedHeight(30)
-            btn.setStyleSheet(f"background-color: {c}; border-radius: 3px;") # Giữ cái này để lấy màu động
-            btn.clicked.connect(lambda checked, color=c: self.canvas.change_color(color))
-            layout.addWidget(btn)
+        # Gọi cái ColorPickerWidget vừa tạo ở trên
+        self.fill_picker = ColorPickerWidget(
+            initial_color="#4BBEFF", 
+            on_color_change=self.canvas.change_color
+        )
+        layout.addWidget(self.fill_picker)
+        # ----------------------------------------
         
         layout.addStretch()
+
+class ColorPickerWidget(QWidget):
+    def __init__(self, initial_color="#FFFFFF", on_color_change=None):
+        super().__init__()
+        self.on_color_change = on_color_change
+        self.current_color = initial_color
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(8)
+
+        # 1. Nút hiển thị màu hiện tại (Click để mở bảng chọn màu)
+        self.btn_color = QPushButton()
+        self.btn_color.setFixedSize(30, 30)
+        self.btn_color.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.update_button_color(self.current_color)
+        self.btn_color.clicked.connect(self.open_color_dialog)
+
+        # 2. Ô nhập mã Hex
+        self.hex_input = QLineEdit(self.current_color)
+        self.hex_input.setObjectName("hexInput")
+        self.hex_input.setMaxLength(7) # Giới hạn 7 ký tự: #FFFFFF
+        self.hex_input.textChanged.connect(self.on_hex_typed)
+
+        layout.addWidget(self.btn_color)
+        layout.addWidget(self.hex_input)
+
+    def update_button_color(self, hex_color):
+        # Cập nhật màu nền cho nút
+        self.btn_color.setStyleSheet(f"""
+            background-color: {hex_color}; 
+            border: 1px solid #555555; 
+            border-radius: 4px;
+        """)
+
+    def open_color_dialog(self):
+        # Mở bảng chọn màu của hệ thống
+        color = QColorDialog.getColor(QColor(self.current_color), self, "Select Color")
+        if color.isValid():
+            hex_val = color.name().upper()
+            self.hex_input.setText(hex_val) # Sẽ tự động trigger hàm on_hex_typed
+
+    def on_hex_typed(self, text):
+        # Chỉ xử lý khi người dùng gõ đủ mã Hex hợp lệ
+        if len(text) == 7 and text.startswith('#'):
+            self.current_color = text
+            self.update_button_color(self.current_color)
+            if self.on_color_change:
+                self.on_color_change(self.current_color)

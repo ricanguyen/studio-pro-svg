@@ -159,3 +159,18 @@ QToolTip {
     border-radius: 4px;
     padding: 4px;
 }
+/* Style cho ô nhập Text (Hex input) */
+QLineEdit#hexInput {
+    background-color: #1E1E1E;
+    color: #FFFFFF;
+    border: 1px solid #3F3F3F;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 11pt;
+    font-family: monospace; /* Dùng font monospace để mã Hex thẳng hàng đẹp mắt */
+}
+
+QLineEdit#hexInput:focus {
+    border: 1px solid #4BBEFF; /* Sáng viền xanh khi click vào gõ */
+    background-color: #121212;
+}
