@@ -1,23 +1,23 @@
-/* Master Styles for Studio Pro SVG */
-
-/* General Widget Backgrounds */
 QMainWindow, QWidget#central {
     background-color: #121212;
     font-family: 'Segoe UI', Arial, sans-serif;
 }
 
-/* Sidebar and Properties Panels */
 QFrame {
     border: none;
 }
 
-/* Labels */
+QGraphicsView {
+    border: none;
+    background-color: #1E1E1E;
+}
+
+/* Typography */
 QLabel {
     color: #E0E0E0;
     font-size: 11pt;
 }
 
-/* Custom Headers */
 QLabel#headerTitle {
     color: #FFFFFF;
     font-size: 14pt;
@@ -34,7 +34,16 @@ QLabel#panelTitle {
     margin-bottom: 5px;
 }
 
-/* Buttons */
+QLabel#logoLabel {
+    color: #FFFFFF;
+    font-size: 18pt;
+    font-weight: 900;
+    background-color: #1A1A1A;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+/* Interactive Elements */
 QPushButton {
     background-color: #2D2D2D;
     color: #FFFFFF;
@@ -53,7 +62,6 @@ QPushButton:pressed {
     background-color: #1A1A1A;
 }
 
-/* Specific Button Styles */
 QPushButton#btnAction {
     background-color: #4BBEFF;
     color: #000000;
@@ -70,7 +78,6 @@ QPushButton#btnClear {
     font-weight: bold;
 }
 
-/* Tool Buttons (Square) */
 QPushButton#toolBtn {
     min-width: 60px;
     min-height: 45px;
@@ -83,19 +90,116 @@ QPushButton#toolBtn:checked {
     border: 1px solid #FFFFFF;
 }
 
-/* Color Circles/Rects */
-QPushButton#colorBtn {
-    border: 2px solid transparent;
-}
-
-QPushButton#colorBtn:hover {
-    border: 2px solid #FFFFFF;
-}
-
-/* Canvas View */
-QGraphicsView {
+QPushButton#navButton {
+    color: #888888;
+    background-color: transparent;
     border: none;
+    border-bottom: 2px solid transparent;
+    font-size: 12px;
+    margin-left: 5px;
+    padding: 2px 5px;
+}
+
+QPushButton#navButton:hover {
+    color: #FFFFFF;
+}
+
+QPushButton#navButton:pressed {
+    color: #FFFFFF;
+    border-bottom: 2px solid #4BBEFF;
+}
+
+QPushButton#widthStepBtn {
+    background-color: #2A2A2A;
+    color: #AAAAAA;
+    border: 1px solid #3F3F3F;
+    font-size: 6px;
+    padding: 0px;
+}
+
+QPushButton#widthStepBtn:hover {
+    background-color: #4BBEFF;
+    color: #000000;
+}
+
+QPushButton#widthStepBtn:first-child {
+    border-top-right-radius: 4px;
+}
+
+QPushButton#widthStepBtn:last-child {
+    border-bottom-right-radius: 4px;
+    border-top: none;
+}
+
+/* Inputs & Controls */
+QLineEdit, QSpinBox, QComboBox {
     background-color: #1E1E1E;
+    color: #FFFFFF;
+    border: 1px solid #3F3F3F;
+    border-radius: 4px;
+    padding: 4px;
+}
+
+QLineEdit:focus, QSpinBox:focus, QComboBox:focus {
+    border: 1px solid #4BBEFF;
+}
+
+QLineEdit#hexInput {
+    padding: 4px 2px;
+    font-size: 10pt;
+    font-family: 'Consolas', monospace;
+    min-width: 40px;
+}
+
+QLineEdit#strokeWidthInput {
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 20px;
+}
+
+QComboBox::down-arrow {
+    image: url(img/down_arrow.svg);
+    width: 10px;
+    height: 10px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #1E1E1E;
+    color: #FFFFFF;
+    selection-background-color: #4BBEFF;
+    selection-color: #000000;
+    border: 1px solid #3F3F3F;
+}
+
+/* Slider Customization */
+QSlider#opacitySlider::groove:horizontal {
+    border: 1px solid #3F3F3F;
+    height: 4px;
+    background: #1E1E1E;
+    margin: 2px 0;
+    border-radius: 2px;
+}
+
+QSlider#opacitySlider::sub-page:horizontal {
+    background: #4BBEFF;
+    border-radius: 2px;
+}
+
+QSlider#opacitySlider::handle:horizontal {
+    background: #FFFFFF;
+    border: 1px solid #555555;
+    width: 14px;
+    height: 14px;
+    margin: -6px 0;
+    border-radius: 7px;
+}
+
+QSlider#opacitySlider::handle:horizontal:hover {
+    background: #4BBEFF;
 }
 
 /* ScrollBars */
@@ -116,42 +220,13 @@ QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
     background: none;
 }
 
-/* Style cho các nút Menu trên Navbar */
-QPushButton#navButton {
-    color: #888888;
-    background-color: transparent; /* Trong suốt */
-    border: none;
-    border-bottom: 2px solid transparent; /* Tạo sẵn không gian viền nhưng ẩn đi */
-    font-size: 12px;
-    margin-left: 5px;
-    padding: 2px 5px;
-}
-
-QPushButton#navButton:hover {
-    color: #FFFFFF; /* Sáng lên khi rê chuột */
-}
-
-/* HIỆU ỨNG GẠCH CHÂN KHI CLICK */
-QPushButton#navButton:pressed {
-    color: #FFFFFF;
-    border-bottom: 2px solid #4BBEFF; /* Hiện gạch chân màu xanh dương khi nhấn */
-}
-/* Đường kẻ ngăn cách */
+/* Helpers & States */
 QFrame#separator {
-    background-color: #333333; /* Chỉnh màu tối lại để trông chìm và tinh tế hơn */
+    background-color: #333333;
     border: none;
-    margin: 5px 0px 15px 0px;  
+    margin: 5px 0px 15px 0px;
 }
-/* Logo SP ở góc trái */
-QLabel#logoLabel {
-    color: #FFFFFF;
-    font-size: 18pt;       /* Tăng kích thước chữ cho bự lên */
-    font-weight: 900;      /* In đậm hết cỡ (Extra Bold) */
-    background-color: #1A1A1A; /* Đổ nền tối hơn một chút để nổi bật khối logo */
-    border-radius: 8px;    /* Bo góc cho mềm mại */
-    margin-bottom: 10px;   /* Đẩy các nút bên dưới xích xuống 1 chút */
-}
-/* Giao diện cho Tooltip (Nhãn hướng dẫn khi rê chuột) */
+
 QToolTip {
     background-color: #2D2D2D;
     color: #FFFFFF;
@@ -159,129 +234,12 @@ QToolTip {
     border-radius: 4px;
     padding: 4px;
 }
-/* Style cho ô nhập Text (Hex input) */
-QLineEdit#hexInput {
-    background-color: #1E1E1E;
-    color: #FFFFFF;
-    border: 1px solid #3F3F3F;
-    border-radius: 4px;
-    padding: 4px 8px;
-    font-size: 11pt;
-    font-family: monospace; /* Dùng font monospace để mã Hex thẳng hàng đẹp mắt */
+
+QWidget:disabled {
+    color: #555555;
 }
 
-QLineEdit#hexInput:focus {
-    border: 1px solid #4BBEFF; /* Sáng viền xanh khi click vào gõ */
-    background-color: #121212;
-}
-/* Tìm và cập nhật đoạn này trong styles.qss */
-QLineEdit#hexInput {
-    background-color: #1E1E1E;
-    color: #FFFFFF;
-    border: 1px solid #3F3F3F;
-    border-radius: 4px;
-    padding: 4px 2px;
-    font-size: 10pt;
-    font-family: 'Consolas', monospace;
-    min-width: 40px; 
-}
-
-QLineEdit#hexInput:focus {
-    border: 1px solid #4BBEFF;
-    background-color: #121212;
-}
-/* Style cho QSpinBox (Width) và QComboBox (Style) */
-QSpinBox#strokeWidthBox, QComboBox#strokeStyleCombo {
-    background-color: #1E1E1E;
-    color: #FFFFFF;
-    border: 1px solid #3F3F3F;
-    border-radius: 4px;
-    padding: 4px;
-    min-height: 25px;
-}
-
-QSpinBox#strokeWidthBox:focus, QComboBox#strokeStyleCombo:focus {
-    border: 1px solid #4BBEFF;
-}
-
-/* Tùy chỉnh mũi tên của ComboBox */
-QComboBox::drop-down {
-    border: none;
-    width: 20px;
-}
-
-QComboBox::down-arrow {
-    image: url(img/down_arrow.svg); /* Nếu bạn có icon mũi tên, hoặc dùng ký tự mặc định */
-    width: 10px;
-    height: 10px;
-}
-
-/* Style cho danh sách xổ xuống của ComboBox */
-QComboBox QAbstractItemView {
-    background-color: #1E1E1E;
-    color: #FFFFFF;
-    selection-background-color: #4BBEFF;
-    selection-color: #000000;
-    border: 1px solid #3F3F3F;
-}
-/* Ô nhập số Width */
-QLineEdit#strokeWidthInput {
-    background-color: #1E1E1E;
-    color: #FFFFFF;
-    border: 1px solid #3F3F3F;
-    border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
-    padding: 2px;
-    font-size: 10pt;
-}
-
-/* Nút tăng giảm nhỏ nằm dọc */
-QPushButton#widthStepBtn {
-    background-color: #2A2A2A;
-    color: #AAAAAA;
-    border: 1px solid #3F3F3F;
-    font-size: 6px; /* Chữ cực nhỏ cho mũi tên */
-    padding: 0px;
-}
-
-QPushButton#widthStepBtn:hover {
-    background-color: #4BBEFF;
-    color: #000000;
-}
-
-/* Bo góc cho nút trên và dưới để khớp với ô input */
-QPushButton#widthStepBtn:first-child {
-    border-top-right-radius: 4px;
-}
-QPushButton#widthStepBtn:last-child {
-    border-bottom-right-radius: 4px;
-    border-top: none; /* Tránh trùng viền ở giữa 2 nút */
-}
-/* Tổng thể thanh trượt */
-QSlider#opacitySlider::groove:horizontal {
-    border: 1px solid #3F3F3F;
-    height: 4px;
-    background: #1E1E1E;
-    margin: 2px 0;
-    border-radius: 2px;
-}
-
-/* Phần đã kéo qua (màu xanh) */
-QSlider#opacitySlider::sub-page:horizontal {
-    background: #4BBEFF;
-    border-radius: 2px;
-}
-
-/* Nút kéo (Handle) */
-QSlider#opacitySlider::handle:horizontal {
-    background: #FFFFFF;
-    border: 1px solid #555555;
-    width: 14px;
-    height: 14px;
-    margin: -6px 0; /* Căn giữa nút kéo trên rãnh */
-    border-radius: 7px;
-}
-
-QSlider#opacitySlider::handle:horizontal:hover {
-    background: #4BBEFF;
+QLineEdit:disabled, QPushButton:disabled, QSlider:disabled {
+    background-color: #161616;
+    border-color: #2A2A2A;
 }
