@@ -1,6 +1,6 @@
 import sys
 from PyQt6.QtWidgets import (
-    QFrame, QSlider, QVBoxLayout, QHBoxLayout, QPushButton, 
+    QButtonGroup, QFrame, QSlider, QVBoxLayout, QHBoxLayout, QPushButton, 
     QLabel, QWidget, QLineEdit, QColorDialog, QGraphicsOpacityEffect
 )
 from PyQt6.QtGui import QIcon, QColor, QPixmap
@@ -13,6 +13,10 @@ class Toolbar(QFrame):
         self.canvas = canvas
         self.setFixedWidth(80)
         self.setObjectName("leftToolbar")
+
+        self.group = QButtonGroup(self)
+        self.group.setExclusive(True)
+        
         self.init_ui()
 
     def init_ui(self):
@@ -55,6 +59,12 @@ class Toolbar(QFrame):
             btn.setIcon(QIcon(f"img/{icon_file}"))
             btn.setIconSize(QSize(24, 24))
             btn.setToolTip(tooltip)
+
+            btn.setCheckable(True)
+            self.group.addButton(btn)
+            if mode == "select":
+                btn.setChecked(True)
+                
             btn.clicked.connect(lambda checked, m=mode: self.canvas.set_mode(m))
             layout.addWidget(btn)
         
