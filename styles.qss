@@ -259,3 +259,6 @@ QPushButton#toolBtn:checked {
 QPushButton#toolBtn:checked {
     color: #000000; 
 }
+QPushButton#btnGrid:checked {
+    background-color: #4BBEFF;
+}

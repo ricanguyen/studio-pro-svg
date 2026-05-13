@@ -1,11 +1,12 @@
 import sys
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QPushButton, QWidget, 
-                             QHBoxLayout, QVBoxLayout, QFrame, QLabel)
-from PyQt6.QtGui import QIcon, QKeySequence, QShortcut, QUndoStack
+                             QHBoxLayout, QVBoxLayout, QFrame, QLabel, QMenu)
+from PyQt6.QtGui import QIcon, QKeySequence, QShortcut, QUndoStack, QAction
 from PyQt6.QtCore import Qt
 
 from canvas.paint_canvas import PaintCanvas
 from ui.widgets import Toolbar, PropertiesPanel
+from utils.file_handler import SVGHandler
 
 class SVGPaintApp(QMainWindow):
     def __init__(self):
@@ -27,6 +28,7 @@ class SVGPaintApp(QMainWindow):
 
         self._init_ui()
         self._setup_shortcuts()
+       
 
     def _init_ui(self):
         """Thiết lập bố cục tổng thể của ứng dụng"""
@@ -64,20 +66,55 @@ class SVGPaintApp(QMainWindow):
         h_layout.setContentsMargins(10, 0, 10, 0)
         
         title_label = QLabel("Studio Pro")
-        title_label.setStyleSheet("""
-            color: white; font-weight: bold; font-size: 14px;
-            border: none; margin-right: 20px;
-        """)
+        title_label.setStyleSheet("color: white; font-weight: bold; font-size: 14px; border: none; margin-right: 20px;")
         h_layout.addWidget(title_label)
         
-        # Tạo nhanh các nút menu
+        # Danh sách các menu
         for menu_name in ["File", "Edit", "View", "Object", "Window", "Help"]:
             btn = QPushButton(menu_name)
             btn.setObjectName("navButton")
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            
+            # CHỈ XỬ LÝ DROPDOWN CHO NÚT "FILE"
+            if menu_name == "File":
+                file_menu = QMenu(self)
+                file_menu.setStyleSheet("""
+                    QMenu { background-color: #2A2A2A; color: #E0E0E0; border: 1px solid #444; padding: 5px 0px; }
+                    QMenu::item { padding: 5px 30px 5px 20px; }
+                    QMenu::item:selected { background-color: #4BBEFF; color: black; }
+                    QMenu::separator { height: 1px; background-color: #444; margin: 4px 10px; }
+                """)
+                
+                # 1. Action: New (Phải nằm trên cùng)
+                new_action = QAction("New", self)
+                new_action.setShortcut("Ctrl+N")
+                new_action.triggered.connect(self.new_file)
+                file_menu.addAction(new_action)
+                
+                # Đường kẻ phân cách
+                file_menu.addSeparator()
+                
+                # 2. Action: Open
+                open_action = QAction("Open SVG...", self)
+                open_action.setShortcut("Ctrl+O")
+                open_action.triggered.connect(lambda: SVGHandler.import_svg(self, self.canvas.scene))
+                file_menu.addAction(open_action)
+                
+                # 3. Action: Export
+                export_action = QAction("Export SVG...", self)
+                export_action.setShortcut("Ctrl+E")
+                export_action.triggered.connect(lambda: SVGHandler.export_svg(self, self.canvas.scene))
+                file_menu.addAction(export_action)
+                
+                # Gắn Menu vào nút và đăng ký phím tắt toàn cục
+                btn.setMenu(file_menu)
+                self.addAction(new_action)
+                self.addAction(open_action)
+                self.addAction(export_action)
+            
             h_layout.addWidget(btn)
             
-        h_layout.addStretch() # Đẩy các nút về phía trái
+        h_layout.addStretch()
         return header
 
     def _setup_shortcuts(self):
@@ -85,6 +122,16 @@ class SVGPaintApp(QMainWindow):
         QShortcut(QKeySequence("Ctrl+Z"), self).activated.connect(self.undo_stack.undo)
         QShortcut(QKeySequence("Ctrl+Y"), self).activated.connect(self.undo_stack.redo)
         QShortcut(QKeySequence("Delete"), self).activated.connect(self.canvas.delete_selected)
+        
+    # --- THÊM HÀM NÀY ĐỂ XỬ LÝ TẠO FILE MỚI ---
+    def new_file(self):
+        """Dọn sạch canvas và reset lịch sử Undo để bắt đầu bản vẽ mới"""
+        self.canvas.scene.clear()
+        self.undo_stack.clear()
+        
+        # Reset lại bảng Properties bên phải (làm mờ nó đi vì không có gì được chọn)
+        if hasattr(self, 'properties'):
+            self.properties.update_panel_state([])
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -99,3 +146,4 @@ if __name__ == "__main__":
     window = SVGPaintApp()
     window.show()
     sys.exit(app.exec())
+    

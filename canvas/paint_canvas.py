@@ -1,9 +1,9 @@
 import math
 from PyQt6.QtWidgets import (QGraphicsView, QGraphicsScene, QGraphicsRectItem, 
                              QGraphicsEllipseItem, QGraphicsLineItem, QGraphicsItem,
-                             QGraphicsPolygonItem)
+                             QGraphicsPolygonItem, QGraphicsTextItem, QInputDialog ,QLineEdit)
 from PyQt6.QtCore import Qt, QRectF, QLineF, QPointF
-from PyQt6.QtGui import QPen, QColor, QBrush, QPolygonF
+from PyQt6.QtGui import QPen, QColor, QBrush, QPolygonF, QFont
 from models.commands import AddCommand, DeleteCommand, ColorCommand
 
 # =======================================================
@@ -84,7 +84,36 @@ class InteractivePolygonItem(QGraphicsPolygonItem):
             event.accept()
         else:
             super().mouseReleaseEvent(event)
+# =======================================================
+# CLASS TEXT THÔNG MINH (NHẬP CHỮ & DOUBLE-CLICK ĐỂ SỬA)
+# =======================================================
+class InteractiveTextItem(QGraphicsTextItem):
+    def __init__(self, parent=None):
+        super().__init__("", parent)
+        self.setFlags(
+            QGraphicsItem.GraphicsItemFlag.ItemIsSelectable | 
+            QGraphicsItem.GraphicsItemFlag.ItemIsMovable
+        )
+        # Bật chế độ edit ngay khi vừa tạo
+        self.setTextInteractionFlags(Qt.TextInteractionFlag.TextEditorInteraction)
 
+    def focusOutEvent(self, event):
+        """Khi click ra ngoài vùng text: Tắt chế độ gõ chữ, khóa lại thành object bình thường"""
+        self.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
+        
+        # Nếu người dùng không nhập gì mà click ra ngoài -> Tự động xóa để rác không đầy scene
+        if self.toPlainText().strip() == "":
+            if self.scene():
+                self.scene().removeItem(self)
+                
+        super().focusOutEvent(event)
+
+    def mouseDoubleClickEvent(self, event):
+        """Double click để bật lại con trỏ nhấp nháy và sửa chữ"""
+        if self.isSelected():
+            self.setTextInteractionFlags(Qt.TextInteractionFlag.TextEditorInteraction)
+            self.setFocus()
+        super().mouseDoubleClickEvent(event)
 # =======================================================
 # 3. CLASS CANVAS CHÍNH
 # =======================================================
@@ -108,6 +137,7 @@ class PaintCanvas(QGraphicsView):
         self.current_opacity = 1.0
 
         self.scene.selectionChanged.connect(self.handle_selection_changed)
+        self.show_grid = False
 
     def set_mode(self, mode):
         self.mode = mode
@@ -129,6 +159,7 @@ class PaintCanvas(QGraphicsView):
 
     # --- Các hàm thay đổi thuộc tính đối tượng ---
     def change_color(self, color_hex):
+        """Thay đổi màu nền (Fill)"""
         self.current_fill_color = color_hex
         new_color = QColor(color_hex)
         for item in self.scene.selectedItems():
@@ -138,20 +169,112 @@ class PaintCanvas(QGraphicsView):
                 self.undo_stack.push(ColorCommand(item, old_brush, new_brush))
             elif isinstance(item, QGraphicsLineItem):
                 self.change_stroke_color(color_hex)
+            elif isinstance(item, QGraphicsTextItem): 
+                item.setDefaultTextColor(new_color)
+
+    def add_text_item(self, pos):
+        text, ok = QInputDialog.getText(self, "Add Text", "Enter your text:", QLineEdit.EchoMode.Normal)
+        
+        if ok and text:
+            text_item = QGraphicsTextItem(text)
+            
+            # Cấu hình vị trí và thuộc tính
+            text_item.setPos(pos)
+            
+            # QUAN TRỌNG: Nếu self.current_fill_color là 'transparent', chữ sẽ bị tàng hình.
+            # Ta nên ưu tiên dùng màu trắng hoặc màu đã chọn nếu nó hợp lệ.
+            color = QColor(self.current_fill_color)
+            if self.current_fill_color == "transparent":
+                color = QColor("#FFFFFF") # Mặc định chữ màu trắng nếu fill đang để trống
+            
+            text_item.setDefaultTextColor(color)
+            text_item.setOpacity(self.current_opacity)
+            
+            # Bật tính năng tương tác
+            text_item.setFlags(
+                QGraphicsItem.GraphicsItemFlag.ItemIsSelectable | 
+                QGraphicsItem.GraphicsItemFlag.ItemIsMovable
+            )
+            
+            # Đẩy vào Scene trước khi đẩy vào UndoStack (tùy vào cách bạn viết AddCommand)
+            self.scene.addItem(text_item) 
+            
+            # Đưa vào hệ thống Undo/Redo
+            if hasattr(self, 'undo_stack'):
+                self.undo_stack.push(AddCommand(self.scene, text_item))
+        """Mở hộp thoại nhập chữ và chèn vào canvas"""
+        text, ok = QInputDialog.getText(self, "Add Text", "Enter your text:", QLineEdit.EchoMode.Normal)
+        
+        if ok and text:
+            text_item = QGraphicsTextItem(text)
+            text_item.setPos(pos)
+            
+            # Áp dụng màu sắc và độ trong suốt hiện tại
+            text_item.setDefaultTextColor(QColor(self.current_fill_color))
+            text_item.setOpacity(self.current_opacity)
+            
+            # Cho phép chọn và di chuyển
+            text_item.setFlags(
+                QGraphicsItem.GraphicsItemFlag.ItemIsSelectable | 
+                QGraphicsItem.GraphicsItemFlag.ItemIsMovable
+            )
+            
+            # Đưa vào Undo Stack
+            self.undo_stack.push(AddCommand(self.scene, text_item))
                 
     def change_stroke_color(self, color):
+        """Thay đổi màu viền (Stroke)"""
         self.current_stroke_color = color
         for item in self.scene.selectedItems():
-            pen = item.pen()
-            pen.setColor(QColor(color))
-            item.setPen(pen)
+            if hasattr(item, 'pen'): 
+                pen = item.pen()
+                pen.setColor(QColor(color))
+                item.setPen(pen)
+            elif isinstance(item, QGraphicsTextItem): 
+                item.setDefaultTextColor(QColor(color))
 
     def set_stroke_width(self, width):
+        """Thay đổi độ dày viền (Width)"""
         self.current_stroke_width = width
         for item in self.scene.selectedItems():
-            pen = item.pen()
-            pen.setWidth(width)
-            item.setPen(pen)
+            if hasattr(item, 'pen'): 
+                pen = item.pen()
+                pen.setWidth(width)
+                item.setPen(pen)
+# --- CÁC HÀM ĐỊNH DẠNG TEXT ---
+    
+    def change_text_color(self, color_hex):
+        for item in self.scene.selectedItems():
+            if isinstance(item, QGraphicsTextItem):
+                item.setDefaultTextColor(QColor(color_hex))
+
+    def change_font_family(self, font):
+        for item in self.scene.selectedItems():
+            if isinstance(item, QGraphicsTextItem):
+                f = item.font()
+                f.setFamily(font.family())
+                item.setFont(f)
+
+    def change_font_size(self, size):
+        for item in self.scene.selectedItems():
+            if isinstance(item, QGraphicsTextItem):
+                f = item.font()
+                f.setPointSize(size)
+                item.setFont(f)
+
+    def toggle_font_style(self, style_type, is_checked):
+        for item in self.scene.selectedItems():
+            if isinstance(item, QGraphicsTextItem):
+                f = item.font()
+                if style_type == 'bold':
+                    f.setBold(is_checked)
+                elif style_type == 'italic':
+                    f.setItalic(is_checked)
+                elif style_type == 'underline':
+                    f.setUnderline(is_checked)
+                elif style_type == 'strike':
+                    f.setStrikeOut(is_checked)
+                item.setFont(f)
 
     def set_opacity(self, value):
         self.current_opacity = value / 100.0
@@ -175,7 +298,30 @@ class PaintCanvas(QGraphicsView):
             elif self.mode == "line": 
                 self.current_item = QGraphicsLineItem()
             elif self.mode == "polygon": 
-                self.current_item = InteractivePolygonItem(QPolygonF()) # Đa giác rỗng khởi đầu
+                self.current_item = InteractivePolygonItem(QPolygonF()) 
+            elif self.mode == "text":
+                text_item = InteractiveTextItem()
+                
+                # Cài đặt màu chữ (Dùng màu Stroke hiện tại cho đồng bộ)
+                text_item.setDefaultTextColor(QColor(self.current_stroke_color))
+                
+                # Cài đặt Font chữ mặc định
+                font = QFont("Arial", 16)
+                text_item.setFont(font)
+                
+                # Đặt vị trí Text đúng ngay mũi tên chuột
+                text_item.setPos(self.start_point)
+                self.scene.addItem(text_item)
+                
+                # Lưu vào Undo Stack
+                self.undo_stack.push(AddCommand(self.scene, text_item))
+                
+                # Kích hoạt con trỏ nhấp nháy ngay lập tức
+                text_item.setFocus()
+                
+                # Không gán vào self.current_item để chặn logic kéo thả (mouseMoveEvent)
+                self.current_item = None 
+                return
 
             if self.current_item:
                 # Áp dụng các thông số hiện tại cho item mới
@@ -235,3 +381,61 @@ class PaintCanvas(QGraphicsView):
         selected_items = self.scene.selectedItems()
         if hasattr(self, 'properties_panel'):
             self.properties_panel.update_panel_state(selected_items)
+    
+    def add_text_item(self, pos):
+        """Mở hộp thoại nhập chữ và chèn vào canvas"""
+        text, ok = QInputDialog.getText(self, "Add Text", "Enter your text:", QLineEdit.EchoMode.Normal)
+        
+        if ok and text:
+            text_item = QGraphicsTextItem(text)
+            text_item.setPos(pos)
+            
+            # Áp dụng màu sắc và độ trong suốt hiện tại
+            text_item.setDefaultTextColor(QColor(self.current_fill_color))
+            text_item.setOpacity(self.current_opacity)
+            
+            # Cho phép chọn và di chuyển
+            text_item.setFlags(
+                QGraphicsItem.GraphicsItemFlag.ItemIsSelectable | 
+                QGraphicsItem.GraphicsItemFlag.ItemIsMovable
+            )
+            
+            # Đưa vào Undo Stack
+            self.undo_stack.push(AddCommand(self.scene, text_item))
+
+    def toggle_grid(self):
+        """Bật/tắt trạng thái hiển thị lưới"""
+        self.show_grid = not self.show_grid
+        # Ép canvas vẽ lại toàn bộ nền
+        self.viewport().update()
+
+    def drawBackground(self, painter, rect):
+        """Hàm ghi đè (override) hệ thống để tự vẽ nền và lưới"""
+        # 1. Gọi hàm gốc để vẽ màu nền mặc định (#1E1E1E)
+        super().drawBackground(painter, rect)
+        
+        # 2. Nếu đang bật lưới thì bắt đầu vẽ
+        if self.show_grid:
+            grid_size = 20 # Khoảng cách giữa các ô lưới (20px)
+            
+            # Cài đặt màu cho nét lưới (Sáng hơn nền 1 chút để không bị chói)
+            pen = QPen(QColor("#2A2A2A"), 1)
+            painter.setPen(pen)
+            
+            # Tính toán tọa độ hiển thị (chỉ vẽ trong vùng đang nhìn thấy để tối ưu hiệu năng)
+            left = int(math.floor(rect.left()))
+            right = int(math.ceil(rect.right()))
+            top = int(math.floor(rect.top()))
+            bottom = int(math.ceil(rect.bottom()))
+
+            # Căn lề lưới sao cho nó không bị lệch khi di chuyển
+            first_left = left - (left % grid_size)
+            first_top = top - (top % grid_size)
+
+            # Vẽ các đường dọc
+            for x in range(first_left, right, grid_size):
+                painter.drawLine(x, top, x, bottom)
+
+            # Vẽ các đường ngang
+            for y in range(first_top, bottom, grid_size):
+                painter.drawLine(left, y, right, y)
