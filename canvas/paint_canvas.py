@@ -139,7 +139,7 @@ class PaintCanvas(QGraphicsView):
         self.scene.selectionChanged.connect(self.handle_selection_changed)
         self.show_grid = False
         self.is_dark_theme = True
-        
+
     def set_mode(self, mode):
         self.mode = mode
         # Chế độ select thì mới cho phép di chuyển/chọn item
@@ -410,33 +410,37 @@ class PaintCanvas(QGraphicsView):
         # Ép canvas vẽ lại toàn bộ nền
         self.viewport().update()
 
+    def set_theme(self, is_dark):
+        """Đổi theme cho canvas và ép vẽ lại"""
+        self.is_dark_theme = is_dark
+        self.viewport().update()
+
     def drawBackground(self, painter, rect):
-        """Hàm ghi đè (override) hệ thống để tự vẽ nền và lưới"""
-        # 1. Gọi hàm gốc để vẽ màu nền mặc định (#1E1E1E)
-        super().drawBackground(painter, rect)
+        """Hàm ghi đè (override) để tự vẽ nền và lưới theo Theme"""
+        # Xác định màu nền theo Theme
+        bg_color = QColor("#1E1E1E") if getattr(self, 'is_dark_theme', True) else QColor("#F8F9FA")
         
-        # 2. Nếu đang bật lưới thì bắt đầu vẽ
-        if self.show_grid:
-            grid_size = 20 # Khoảng cách giữa các ô lưới (20px)
-            
-            # Cài đặt màu cho nét lưới (Sáng hơn nền 1 chút để không bị chói)
-            pen = QPen(QColor("#2A2A2A"), 1)
+        # Đổ màu nền
+        painter.fillRect(rect, bg_color)
+        
+        # Vẽ lưới nếu người dùng đang bật nút Grid
+        if getattr(self, 'show_grid', False):
+            # Xác định màu nét lưới theo Theme
+            grid_color = QColor("#2A2A2A") if getattr(self, 'is_dark_theme', True) else QColor("#E9ECEF")
+            pen = QPen(grid_color, 1)
             painter.setPen(pen)
             
-            # Tính toán tọa độ hiển thị (chỉ vẽ trong vùng đang nhìn thấy để tối ưu hiệu năng)
+            # Tính toán và vẽ lưới tọa độ
             left = int(math.floor(rect.left()))
             right = int(math.ceil(rect.right()))
             top = int(math.floor(rect.top()))
             bottom = int(math.ceil(rect.bottom()))
 
-            # Căn lề lưới sao cho nó không bị lệch khi di chuyển
-            first_left = left - (left % grid_size)
-            first_top = top - (top % grid_size)
+            first_left = left - (left % 20)
+            first_top = top - (top % 20)
 
-            # Vẽ các đường dọc
-            for x in range(first_left, right, grid_size):
+            for x in range(first_left, right, 20):
                 painter.drawLine(x, top, x, bottom)
 
-            # Vẽ các đường ngang
-            for y in range(first_top, bottom, grid_size):
+            for y in range(first_top, bottom, 20):
                 painter.drawLine(left, y, right, y)

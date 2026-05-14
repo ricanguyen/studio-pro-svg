@@ -14,19 +14,19 @@ QGraphicsView {
 
 /* Typography */
 QLabel {
-    color: #E0E0E0;
+    color: #3a3636;
     font-size: 11pt;
 }
 
 QLabel#headerTitle {
-    color: #FFFFFF;
+    color: #666666;
     font-size: 14pt;
     font-weight: bold;
     padding-left: 10px;
 }
 
 QLabel#panelTitle {
-    color: #AAAAAA;
+    color: #666666;
     font-size: 9pt;
     font-weight: bold;
     text-transform: uppercase;
@@ -35,7 +35,7 @@ QLabel#panelTitle {
 }
 
 QLabel#logoLabel {
-    color: #FFFFFF;
+    color: #666666;
     font-size: 18pt;
     font-weight: 900;
     background-color: #1A1A1A;
@@ -46,7 +46,7 @@ QLabel#logoLabel {
 /* Interactive Elements */
 QPushButton {
     background-color: #2D2D2D;
-    color: #FFFFFF;
+    color: #666666;
     border: 1px solid #3F3F3F;
     border-radius: 4px;
     padding: 1px;
@@ -74,7 +74,7 @@ QPushButton#btnAction:hover {
 
 QPushButton#btnClear {
     background-color: #f39c12;
-    color: #FFFFFF;
+    color: #666666;
     font-weight: bold;
 }
 
@@ -101,11 +101,11 @@ QPushButton#navButton {
 }
 
 QPushButton#navButton:hover {
-    color: #FFFFFF;
+    color: #666666;
 }
 
 QPushButton#navButton:pressed {
-    color: #FFFFFF;
+    color: #666666;
     border-bottom: 2px solid #4BBEFF;
 }
 
@@ -134,7 +134,7 @@ QPushButton#widthStepBtn:last-child {
 /* Inputs & Controls */
 QLineEdit, QSpinBox, QComboBox {
     background-color: #1E1E1E;
-    color: #FFFFFF;
+    color: #666666;
     border: 1px solid #3F3F3F;
     border-radius: 4px;
     padding: 4px;
@@ -169,7 +169,7 @@ QComboBox::down-arrow {
 
 QComboBox QAbstractItemView {
     background-color: #1E1E1E;
-    color: #FFFFFF;
+    color: #666666;
     selection-background-color: #4BBEFF;
     selection-color: #000000;
     border: 1px solid #3F3F3F;
@@ -190,7 +190,7 @@ QSlider#opacitySlider::sub-page:horizontal {
 }
 
 QSlider#opacitySlider::handle:horizontal {
-    background: #FFFFFF;
+    background: #666666;
     border: 1px solid #555555;
     width: 14px;
     height: 14px;
@@ -210,7 +210,7 @@ QScrollBar:vertical {
 }
 
 QScrollBar::handle:vertical {
-    background: #333333;
+    background: #666666;
     min-height: 20px;
     border-radius: 5px;
 }
@@ -229,7 +229,7 @@ QFrame#separator {
 
 QToolTip {
     background-color: #2D2D2D;
-    color: #FFFFFF;
+    color: #666666;
     border: 1px solid #4BBEFF;
     border-radius: 4px;
     padding: 4px;
@@ -253,7 +253,7 @@ QPushButton#toolBtn {
 
 QPushButton#toolBtn:checked {
     background-color: #4BBEFF; /* Màu xanh highlight */
-    border: 1px solid #FFFFFF;
+    border: 1px solid #666666;
 }
 
 QPushButton#toolBtn:checked {

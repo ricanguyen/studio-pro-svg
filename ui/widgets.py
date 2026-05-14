@@ -83,6 +83,24 @@ class Toolbar(QFrame):
             layout.addWidget(btn)
         
         layout.addStretch()
+    def set_theme(self, is_dark):
+        self.setObjectName("mainToolbar")
+        if is_dark:
+            self.setStyleSheet("""
+                #mainToolbar { background-color: #121212; border-right: 1px solid #2D2D2D; }
+                QPushButton { background-color: transparent; border: none; border-radius: 4px; padding: 5px; }
+                QPushButton:hover { background-color: #2A2A2A; }
+                QPushButton:checked { background-color: #4BBEFF; }
+                QLabel { color: #AAAAAA; font-weight: bold; }
+            """)
+        else:
+            self.setStyleSheet("""
+                #mainToolbar { background-color: #F8F9FA; border-right: 1px solid #DDDDDD; }
+                QPushButton { background-color: transparent; border: none; border-radius: 4px; padding: 5px; }
+                QPushButton:hover { background-color: #E9ECEF; }
+                QPushButton:checked { background-color: #4BBEFF; }
+                QLabel { color: #555555; font-weight: bold; }
+            """)
 
 class PropertiesPanel(QFrame):
     def __init__(self, canvas):
@@ -317,6 +335,38 @@ class PropertiesPanel(QFrame):
     def update_opacity_logic(self, value):
         self.opacity_label.setText(f"{value}%")
         self.canvas.set_opacity(value)
+    def set_theme(self, is_dark):
+        self.setObjectName("mainProperties")
+        if is_dark:
+            self.setStyleSheet("""
+                #mainProperties { background-color: #121212; border-left: 1px solid #2D2D2D; }
+                QLabel { color: #E0E0E0; }
+                QLineEdit, QComboBox, QSpinBox {
+                    background-color: #2A2A2A; color: white; 
+                    border: 1px solid #444; border-radius: 3px; padding: 4px;
+                }
+                QPushButton { 
+                    background-color: #2A2A2A; color: white; 
+                    border: 1px solid #444; border-radius: 3px; padding: 5px;
+                }
+                QPushButton:hover { background-color: #333333; }
+                QPushButton:checked { background-color: #4BBEFF; border: 1px solid #4BBEFF; color: black; }
+            """)
+        else:
+            self.setStyleSheet("""
+                #mainProperties { background-color: #F8F9FA; border-left: 1px solid #DDDDDD; }
+                QLabel { color: #333333; }
+                QLineEdit, QComboBox, QSpinBox {
+                    background-color: #FFFFFF; color: #000000; 
+                    border: 1px solid #CCC; border-radius: 3px; padding: 4px;
+                }
+                QPushButton { 
+                    background-color: #FFFFFF; color: #333333; 
+                    border: 1px solid #CCC; border-radius: 3px; padding: 5px;
+                }
+                QPushButton:hover { background-color: #E9ECEF; }
+                QPushButton:checked { background-color: #4BBEFF; border: 1px solid #4BBEFF; color: white; }
+            """)
 
 class ColorPickerWidget(QWidget):
     def __init__(self, initial_color="#FFFFFF", on_color_change=None):
