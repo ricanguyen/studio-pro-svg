@@ -71,7 +71,7 @@ class SVGPaintApp(QMainWindow):
         self.title_label = QLabel("Studio Pro")
         h_layout.addWidget(self.title_label)
         
-        for menu_name in ["File", "Edit", "Help"]:
+        for menu_name in ["File", "Edit"]:
             btn = QPushButton(menu_name)
             btn.setObjectName("navButton")
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
