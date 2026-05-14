@@ -10,7 +10,7 @@ class SVGHandler:
     def export_svg(parent_widget, scene):
         file_path, _ = QFileDialog.getSaveFileName(parent_widget, "Export SVG", "", "SVG Files (*.svg)")
         if not file_path:
-            return
+            return False
 
         try:
             # 1. Khởi tạo thẻ <svg> gốc
@@ -112,14 +112,15 @@ class SVGHandler:
                 
             tree.write(file_path, encoding="utf-8", xml_declaration=True)
             print(f"Exported successfully to {file_path}")
-            
+            return True
         except Exception as e:
             print(f"Error exporting SVG: {e}")
+            return False
     @staticmethod
     def import_svg(parent_widget, scene):
         file_path, _ = QFileDialog.getOpenFileName(parent_widget, "Open SVG", "", "SVG Files (*.svg)")
         if not file_path:
-            return
+            return None
 
         try:
             tree = ET.parse(file_path)
@@ -194,5 +195,110 @@ class SVGHandler:
                     scene.addItem(item)
 
             print("Imported successfully!")
+            return file_path
         except Exception as e:
             print(f"Error importing SVG: {e}")
+            return None
+    @staticmethod
+    def save_svg_to_path(scene, file_path):
+        """Hàm lưu file trực tiếp vào đường dẫn có sẵn"""
+        try:
+            rect = scene.sceneRect()
+            width, height = int(rect.width()), int(rect.height())
+            svg = ET.Element('svg', xmlns="http://www.w3.org/2000/svg", version="1.1", width=str(width), height=str(height))
+
+            # (Phần logic duyệt item để tạo SVG giữ nguyên như hàm export_svg)
+            for item in reversed(scene.items()):
+                
+                # --- A. NẾU LÀ TEXT ---
+                if isinstance(item, QGraphicsTextItem):
+                    text_el = ET.SubElement(svg, 'text')
+                    text_el.text = item.toPlainText()
+                    
+                    # Tọa độ Text (phải cộng thêm pointSize vì SVG tính từ đường baseline của chữ)
+                    pos = item.scenePos()
+                    text_el.set('x', str(pos.x()))
+                    text_el.set('y', str(pos.y() + item.font().pointSize()))
+                    
+                    # Style của chữ
+                    text_el.set('fill', item.defaultTextColor().name())
+                    text_el.set('font-family', item.font().family())
+                    text_el.set('font-size', f"{item.font().pointSize()}px")
+                    
+                    styles = []
+                    if item.font().bold(): styles.append("font-weight:bold")
+                    if item.font().italic(): styles.append("font-style:italic")
+                    if item.font().underline(): styles.append("text-decoration:underline")
+                    if item.font().strikeOut(): styles.append("text-decoration:line-through")
+                    if styles: text_el.set('style', ";".join(styles))
+                    
+                    text_el.set('opacity', str(item.opacity()))
+                    continue
+
+                # --- B. CÁC HÌNH KHỐI (SHAPE) ---
+                if not hasattr(item, 'pen'):
+                    continue # Bỏ qua các item rác không có nét vẽ
+
+                pen = item.pen()
+                stroke = pen.color().name()
+                stroke_width = str(pen.width())
+                opacity = str(item.opacity())
+
+                # Lấy màu Fill (Nếu là no brush/transparent thì để none)
+                fill = "none"
+                if hasattr(item, 'brush'):
+                    brush = item.brush()
+                    if brush.style() != Qt.BrushStyle.NoBrush and brush.color().alpha() > 0:
+                        fill = brush.color().name()
+
+                pos = item.scenePos()
+
+                # B.1 HÌNH CHỮ NHẬT
+                if isinstance(item, QGraphicsRectItem):
+                    r = item.rect()
+                    ET.SubElement(svg, 'rect',
+                                  x=str(r.x() + pos.x()), y=str(r.y() + pos.y()),
+                                  width=str(r.width()), height=str(r.height()),
+                                  fill=fill, stroke=stroke, **{'stroke-width': stroke_width},
+                                  opacity=opacity)
+
+                # B.2 HÌNH TRÒN / ELIP
+                elif isinstance(item, QGraphicsEllipseItem):
+                    r = item.rect()
+                    cx = r.x() + pos.x() + r.width() / 2
+                    cy = r.y() + pos.y() + r.height() / 2
+                    rx = r.width() / 2
+                    ry = r.height() / 2
+                    ET.SubElement(svg, 'ellipse',
+                                  cx=str(cx), cy=str(cy), rx=str(rx), ry=str(ry),
+                                  fill=fill, stroke=stroke, **{'stroke-width': stroke_width},
+                                  opacity=opacity)
+
+                # B.3 ĐƯỜNG THẲNG
+                elif isinstance(item, QGraphicsLineItem):
+                    line = item.line()
+                    ET.SubElement(svg, 'line',
+                                  x1=str(line.x1() + pos.x()), y1=str(line.y1() + pos.y()),
+                                  x2=str(line.x2() + pos.x()), y2=str(line.y2() + pos.y()),
+                                  stroke=stroke, **{'stroke-width': stroke_width},
+                                  opacity=opacity)
+
+                # B.4 ĐA GIÁC (POLYGON)
+                elif isinstance(item, QGraphicsPolygonItem):
+                    poly = item.polygon()
+                    # Nối tất cả các đỉnh x,y lại thành 1 chuỗi string cho SVG
+                    points_str = " ".join([f"{p.x() + pos.x()},{p.y() + pos.y()}" for p in poly])
+                    if points_str:
+                        ET.SubElement(svg, 'polygon', points=points_str,
+                                      fill=fill, stroke=stroke, **{'stroke-width': stroke_width},
+                                      opacity=opacity)
+                        
+            tree = ET.ElementTree(svg)
+            if hasattr(ET, 'indent'):
+                ET.indent(tree, space="  ", level=0)
+            tree.write(file_path, encoding="utf-8", xml_declaration=True)
+            return True
+        except Exception as e:
+            print(f"Error saving SVG: {e}")
+            return False
+                    

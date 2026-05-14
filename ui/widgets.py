@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import (
     QStackedWidget, QFontComboBox, QSpinBox, QGraphicsTextItem
 )
 from PyQt6.QtGui import QIcon, QColor, QFont
-from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtCore import Qt, QSize, QTimer
 from utils.file_handler import SVGHandler
 
 class Toolbar(QFrame):
@@ -407,3 +407,33 @@ class StrokeWidthWidget(QWidget):
                 self.on_change(val)
         except ValueError:
             pass
+
+class NotificationToast(QFrame):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.setFixedSize(120, 40)
+        self.setObjectName("toast")
+        self.setStyleSheet("""
+            #toast {
+                background-color: #2A2A2A;
+                border: 1px solid #4BBEFF;
+                border-radius: 20px;
+            }
+            QLabel { color: white; font-size: 11px; border: none; }
+        """)
+        
+        self.layout = QHBoxLayout(self)
+        self.icon_label = QLabel("⏳") # Icon loading tạm thời
+        self.text_label = QLabel("Đang lưu...")
+        self.layout.addWidget(self.icon_label)
+        self.layout.addWidget(self.text_label)
+        
+        self.hide() # Mặc định ẩn
+
+    def show_message(self, text, icon="✅", duration=2000):
+        self.text_label.setText(text)
+        self.icon_label.setText(icon)
+        self.show()
+        self.raise_() # Đảm bảo nằm trên cùng
+        # Tự động ẩn sau duration ms
+        QTimer.singleShot(duration, self.hide)           

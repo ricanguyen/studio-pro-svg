@@ -138,7 +138,8 @@ class PaintCanvas(QGraphicsView):
 
         self.scene.selectionChanged.connect(self.handle_selection_changed)
         self.show_grid = False
-
+        self.is_dark_theme = True
+        
     def set_mode(self, mode):
         self.mode = mode
         # Chế độ select thì mới cho phép di chuyển/chọn item
