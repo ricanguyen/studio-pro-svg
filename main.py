@@ -1,6 +1,17 @@
 import sys
-from PyQt6.QtWidgets import (QApplication, QFileDialog, QMainWindow, QPushButton, QWidget, 
-                             QHBoxLayout, QVBoxLayout, QFrame, QLabel, QMenu, QMessageBox)
+from PyQt6.QtWidgets import (
+    QApplication,
+    QFileDialog,
+    QMainWindow,
+    QPushButton,
+    QWidget,
+    QHBoxLayout,
+    QVBoxLayout,
+    QFrame,
+    QLabel,
+    QMenu,
+    QMessageBox,
+)
 from PyQt6.QtGui import QIcon, QKeySequence, QShortcut, QUndoStack, QAction
 from PyQt6.QtCore import Qt, QTimer
 
@@ -8,6 +19,7 @@ from PyQt6.QtCore import Qt, QTimer
 from canvas.paint_canvas import PaintCanvas
 from ui.widgets import Toolbar, PropertiesPanel, NotificationToast
 from utils.file_handler import SVGHandler
+
 
 class SVGPaintApp(QMainWindow):
     def __init__(self):
@@ -17,8 +29,8 @@ class SVGPaintApp(QMainWindow):
         self.setWindowIcon(QIcon("img/logo.png"))
 
         self.undo_stack = QUndoStack(self)
-        self.current_file_path = None 
-        self.is_dark = True # Theo dõi Theme hiện tại
+        self.current_file_path = None
+        self.is_dark = True  # Theo dõi Theme hiện tại
 
         # Khởi tạo các Component
         self.canvas = PaintCanvas(self.undo_stack)
@@ -29,7 +41,7 @@ class SVGPaintApp(QMainWindow):
 
         self._init_ui()
         self._setup_shortcuts()
-        
+
         # Cập nhật màu sắc ngay khi mở app
         self.apply_theme()
 
@@ -52,7 +64,7 @@ class SVGPaintApp(QMainWindow):
         main_layout.addWidget(self.toolbar)
         main_layout.addWidget(center_container, 1)
         main_layout.addWidget(self.properties)
-    
+
     def resizeEvent(self, event):
         self.toast.move(self.width() - 140, self.height() - 60)
         super().resizeEvent(event)
@@ -64,44 +76,46 @@ class SVGPaintApp(QMainWindow):
         header = QFrame()
         header.setFixedHeight(50)
         header.setObjectName("canvasHeader")
-        
+
         h_layout = QHBoxLayout(header)
         h_layout.setContentsMargins(10, 0, 10, 0)
-        
+
         self.title_label = QLabel("Studio Pro")
         h_layout.addWidget(self.title_label)
-        
+
         for menu_name in ["File", "Edit"]:
             btn = QPushButton(menu_name)
             btn.setObjectName("navButton")
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            
+
             # --- 1. MENU FILE
             if menu_name == "File":
                 self.file_menu = QMenu(self)
-                
+
                 new_action = QAction("New", self)
                 new_action.setShortcut("Ctrl+N")
                 new_action.triggered.connect(self.new_file)
-                
+
                 open_action = QAction("Open SVG...", self)
                 open_action.setShortcut("Ctrl+O")
                 open_action.triggered.connect(self.open_file)
-                
+
                 save_action = QAction("Save", self)
                 save_action.setShortcut("Ctrl+S")
                 save_action.triggered.connect(self.save_file)
 
                 export_action = QAction("Export SVG...", self)
                 export_action.setShortcut("Ctrl+E")
-                export_action.triggered.connect(lambda: SVGHandler.export_svg(self, self.canvas.scene))
-                
+                export_action.triggered.connect(
+                    lambda: SVGHandler.export_svg(self, self.canvas.scene)
+                )
+
                 self.file_menu.addAction(new_action)
                 self.file_menu.addSeparator()
                 self.file_menu.addAction(open_action)
                 self.file_menu.addAction(save_action)
                 self.file_menu.addAction(export_action)
-                
+
                 btn.setMenu(self.file_menu)
                 self.addAction(new_action)
                 self.addAction(open_action)
@@ -110,24 +124,24 @@ class SVGPaintApp(QMainWindow):
             # --- 2. MENU EDIT (ĐOẠN CẦN THÊM MỚI) ---
             elif menu_name == "Edit":
                 self.edit_menu = QMenu(self)
-                
+
                 # Tính năng Undo
                 undo_action = QAction("Undo", self)
                 undo_action.setShortcut("Ctrl+Z")
                 undo_action.triggered.connect(self.undo_stack.undo)
                 self.edit_menu.addAction(undo_action)
-                
+
                 # Tính năng Redo
                 redo_action = QAction("Redo", self)
                 redo_action.setShortcut("Ctrl+Y")
                 redo_action.triggered.connect(self.undo_stack.redo)
                 self.edit_menu.addAction(redo_action)
-                
+
                 # Gắn menu vào nút
                 btn.setMenu(self.edit_menu)
             # ----------------------------------------
             h_layout.addWidget(btn)
-            
+
         h_layout.addStretch()
 
         # NÚT TOGGLE THEME
@@ -142,7 +156,9 @@ class SVGPaintApp(QMainWindow):
     def _setup_shortcuts(self):
         QShortcut(QKeySequence("Ctrl+Z"), self).activated.connect(self.undo_stack.undo)
         QShortcut(QKeySequence("Ctrl+Y"), self).activated.connect(self.undo_stack.redo)
-        QShortcut(QKeySequence("Delete"), self).activated.connect(self.canvas.delete_selected)
+        QShortcut(QKeySequence("Delete"), self).activated.connect(
+            self.canvas.delete_selected
+        )
 
     def toggle_theme(self):
         self.is_dark = not self.is_dark
@@ -153,52 +169,34 @@ class SVGPaintApp(QMainWindow):
         self.canvas.set_theme(self.is_dark)
         self.toolbar.set_theme(self.is_dark)
         self.properties.set_theme(self.is_dark)
-        
+
+        # 2. Xử lý màu cho Header và Menu (Đoạn code bạn đã làm)
         if self.is_dark:
-            # (Phần Header, Nút Toggle màu tối giữ nguyên)
             self.header.setStyleSheet("""
                 QFrame#canvasHeader { background-color: #121212; border-bottom: 1px solid #2D2D2D; }
-                QPushButton#navButton { color: #E0E0E0; background: transparent; border: none; padding: 5px 12px; }
+                QPushButton#navButton { color: #E0E0E0; background: "transparent"; border: none; padding: 5px 12px; }
                 QPushButton#navButton:hover { background-color: #333333; color: #FFFFFF; border-radius: 4px; }
-                QPushButton#navButton::menu-indicator { image: none; }
             """)
-            self.title_label.setStyleSheet("color: white; font-weight: bold; font-size: 14px; border: none; margin-right: 20px;")
+            self.title_label.setStyleSheet(
+                "color: white; font-weight: bold; font-size: 14px;"
+            )
             self.btn_theme.setText("☀️ Light")
-            self.btn_theme.setStyleSheet("background-color: #333; color: white; border-radius: 4px; border: 1px solid #555;")
-            
-            # --- TẠO STYLE CHUNG CHO MENU (DARK MODE) ---
-            dark_menu_style = """
-                QMenu { background-color: #2A2A2A; color: #E0E0E0; border: 1px solid #444; padding: 5px 0px; }
-                QMenu::item { padding: 5px 30px 5px 20px; }
-                QMenu::item:selected { background-color: #4BBEFF; color: black; }
-                QMenu::separator { height: 1px; background-color: #444; margin: 4px 10px; }
-            """
-            self.file_menu.setStyleSheet(dark_menu_style)
-            if hasattr(self, 'edit_menu'):
-                self.edit_menu.setStyleSheet(dark_menu_style)
-                
+            self.btn_theme.setStyleSheet(
+                "background-color: #333; color: white; border-radius: 4px; border: 1px solid #555;"
+            )
         else:
-            # (Phần Header, Nút Toggle màu sáng giữ nguyên)
             self.header.setStyleSheet("""
                 QFrame#canvasHeader { background-color: #F8F9FA; border-bottom: 1px solid #DDDDDD; }
                 QPushButton#navButton { color: #333333; background: transparent; border: none; padding: 5px 12px; }
                 QPushButton#navButton:hover { background-color: #E9ECEF; color: #000000; border-radius: 4px; }
-                QPushButton#navButton::menu-indicator { image: none; } 
             """)
-            self.title_label.setStyleSheet("color: #333333; font-weight: bold; font-size: 14px; border: none; margin-right: 20px;")
+            self.title_label.setStyleSheet(
+                "color: #333333; font-weight: bold; font-size: 14px;"
+            )
             self.btn_theme.setText("🌙 Dark")
-            self.btn_theme.setStyleSheet("background-color: #F0F0F0; color: #333; border-radius: 4px; border: 1px solid #CCC;")
-            
-            # --- TẠO STYLE CHUNG CHO MENU (LIGHT MODE) ---
-            light_menu_style = """
-                QMenu { background-color: #FFFFFF; color: #333333; border: 1px solid #DDD; padding: 5px 0px; }
-                QMenu::item { padding: 5px 30px 5px 20px; }
-                QMenu::item:selected { background-color: #4BBEFF; color: white; }
-                QMenu::separator { height: 1px; background-color: #DDD; margin: 4px 10px; }
-            """
-            self.file_menu.setStyleSheet(light_menu_style)
-            if hasattr(self, 'edit_menu'):
-                self.edit_menu.setStyleSheet(light_menu_style)
+            self.btn_theme.setStyleSheet(
+                "background-color: #F0F0F0; color: #333; border-radius: 4px; border: 1px solid #CCC;"
+            )
 
     # ==========================================
     # QUẢN LÝ LUỒNG FILE (NEW, OPEN, SAVE)
@@ -210,6 +208,16 @@ class SVGPaintApp(QMainWindow):
             self.undo_stack.clear()
             self.undo_stack.setClean()
 
+            # --- RESET TRẠNG THÁI SAU KHI MỞ FILE ---
+            self.canvas.scene.clearSelection()
+            self.canvas.reset_default_tools()
+            # Ép thanh công cụ bên trái quay về nút Select (chuột)
+            for btn in self.toolbar.group.buttons():
+                if btn.toolTip().startswith("Select"):
+                    btn.setChecked(True)
+                    self.canvas.set_mode("select")
+                    break
+
     def new_file(self):
         has_items = len(self.canvas.scene.items()) > 0
         is_saved = self.undo_stack.isClean()
@@ -218,26 +226,32 @@ class SVGPaintApp(QMainWindow):
             reply = self._show_custom_msgbox(
                 "Lưu thay đổi?",
                 "Bản vẽ có sự thay đổi. Bạn có muốn lưu trước khi tạo trang mới không?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No | QMessageBox.StandardButton.Cancel
+                QMessageBox.StandardButton.Yes
+                | QMessageBox.StandardButton.No
+                | QMessageBox.StandardButton.Cancel,
             )
             if reply == QMessageBox.StandardButton.Yes:
                 if self.current_file_path:
-                    if SVGHandler.save_svg_to_path(self.canvas.scene, self.current_file_path):
+                    if SVGHandler.save_svg_to_path(
+                        self.canvas.scene, self.current_file_path
+                    ):
                         self._reset_canvas()
                 else:
-                    path, _ = QFileDialog.getSaveFileName(self, "Save SVG", "", "SVG Files (*.svg)")
+                    path, _ = QFileDialog.getSaveFileName(
+                        self, "Save SVG", "", "SVG Files (*.svg)"
+                    )
                     if path:
                         self.current_file_path = path
                         if SVGHandler.save_svg_to_path(self.canvas.scene, path):
                             self._reset_canvas()
             elif reply == QMessageBox.StandardButton.No:
                 self._reset_canvas()
-                
+
         elif has_items and is_saved:
             reply = self._show_custom_msgbox(
                 "Đóng file?",
                 "Tác phẩm đã được lưu. Bạn có chắc muốn đóng file hiện tại để tạo trang trắng không?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             )
             if reply == QMessageBox.StandardButton.Yes:
                 self._reset_canvas()
@@ -249,7 +263,9 @@ class SVGPaintApp(QMainWindow):
             self.toast.show_message("Đang lưu...", "⏳", 3000)
             QTimer.singleShot(500, self._execute_save)
         else:
-            path, _ = QFileDialog.getSaveFileName(self, "Save SVG", "", "SVG Files (*.svg)")
+            path, _ = QFileDialog.getSaveFileName(
+                self, "Save SVG", "", "SVG Files (*.svg)"
+            )
             if path:
                 self.current_file_path = path
                 self._execute_save()
@@ -263,10 +279,21 @@ class SVGPaintApp(QMainWindow):
             self.toast.show_message("Lỗi!", "❌")
 
     def _reset_canvas(self):
+        """Hàm phụ trợ dọn dẹp sạch sẽ Canvas và Tools"""
         self.canvas.scene.clear()
         self.undo_stack.clear()
         self.current_file_path = None
-        if hasattr(self, 'properties'):
+
+        # --- RESET TRẠNG THÁI KHI TẠO FILE MỚI ---
+        self.canvas.reset_default_tools()
+        # Ép thanh công cụ bên trái quay về nút Select (chuột)
+        for btn in self.toolbar.group.buttons():
+            if btn.toolTip().startswith("Select"):
+                btn.setChecked(True)
+                self.canvas.set_mode("select")
+                break
+
+        if hasattr(self, "properties"):
             self.properties.update_panel_state([])
 
     def _show_custom_msgbox(self, title, text, buttons):
@@ -274,7 +301,7 @@ class SVGPaintApp(QMainWindow):
         msg_box.setWindowTitle(title)
         msg_box.setText(text)
         msg_box.setStandardButtons(buttons)
-        
+
         if self.is_dark:
             msg_box.setStyleSheet("""
                 QMessageBox { background-color: #2A2A2A; }
@@ -290,6 +317,7 @@ class SVGPaintApp(QMainWindow):
                 QPushButton:hover { background-color: #4BBEFF; color: white; }
             """)
         return msg_box.exec()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

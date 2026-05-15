@@ -1,13 +1,26 @@
-import sys
 from PyQt6.QtWidgets import (
-    QButtonGroup, QFrame, QSlider, QVBoxLayout, QHBoxLayout, QPushButton, 
-    QLabel, QWidget, QLineEdit, QColorDialog, QGraphicsOpacityEffect,
-    QStackedWidget, QFontComboBox, QSpinBox, QGraphicsTextItem
+    QButtonGroup,
+    QFrame,
+    QSlider,
+    QVBoxLayout,
+    QHBoxLayout,
+    QPushButton,
+    QLabel,
+    QWidget,
+    QLineEdit,
+    QColorDialog,
+    QGraphicsOpacityEffect,
+    QStackedWidget,
+    QFontComboBox,
+    QGraphicsTextItem,
 )
-from PyQt6.QtGui import QIcon, QColor, QFont
+from PyQt6.QtGui import QIcon, QColor, QIntValidator
 from PyQt6.QtCore import Qt, QSize, QTimer
-from utils.file_handler import SVGHandler
 
+
+# ==========================================
+# 1. TOOLBAR (THANH CÔNG CỤ BÊN TRÁI)
+# ==========================================
 class Toolbar(QFrame):
     def __init__(self, canvas):
         super().__init__()
@@ -17,7 +30,7 @@ class Toolbar(QFrame):
 
         self.group = QButtonGroup(self)
         self.group.setExclusive(True)
-        
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self.init_ui()
 
     def init_ui(self):
@@ -41,14 +54,15 @@ class Toolbar(QFrame):
         btn_clear.clicked.connect(self.canvas.clear_all)
         layout.addWidget(btn_clear)
 
+        # Nút Lưới (Grid)
         self.btn_grid = QPushButton()
         self.btn_grid.setObjectName("btnGrid")
-        self.btn_grid.setIcon(QIcon("img/grid.svg")) # ⚠️ Nhớ chèn 1 file grid.svg vào thư mục img nhé
+        self.btn_grid.setIcon(QIcon("img/grid.svg"))
         self.btn_grid.setIconSize(QSize(24, 24))
         self.btn_grid.setToolTip("Toggle Grid (Bật/Tắt Lưới)")
         self.btn_grid.setFixedSize(65, 45)
-        self.btn_grid.setCheckable(True) # Cho phép nút giữ trạng thái lún xuống
-        self.btn_grid.setChecked(False)  # Mặc định chưa bấm
+        self.btn_grid.setCheckable(True)
+        self.btn_grid.setChecked(False)
         self.btn_grid.clicked.connect(self.canvas.toggle_grid)
         layout.addWidget(self.btn_grid)
 
@@ -64,9 +78,9 @@ class Toolbar(QFrame):
             ("circle.svg", "ellipse", "Ellipse (E)"),
             ("minus.svg", "line", "Line (L)"),
             ("polygon.svg", "polygon", "Polygon (P)"),
-             ("text.svg", "text", "Text (P)")
+            ("text.svg", "text", "Text (T)"),
         ]
-        
+
         for icon_file, mode, tooltip in tools:
             btn = QPushButton()
             btn.setObjectName("toolBtn")
@@ -81,32 +95,37 @@ class Toolbar(QFrame):
 
             btn.clicked.connect(lambda checked, m=mode: self.canvas.set_mode(m))
             layout.addWidget(btn)
-        
+
         layout.addStretch()
+
     def set_theme(self, is_dark):
         self.setObjectName("mainToolbar")
-        if is_dark:
-            self.setStyleSheet("""
-                #mainToolbar { background-color: #121212; border-right: 1px solid #2D2D2D; }
-                QPushButton { background-color: transparent; border: none; border-radius: 4px; padding: 5px; }
-                QPushButton:hover { background-color: #2A2A2A; }
-                QPushButton:checked { background-color: #4BBEFF; }
-                QLabel { color: #AAAAAA; font-weight: bold; }
-            """)
-        else:
-            self.setStyleSheet("""
-                #mainToolbar { background-color: #F8F9FA; border-right: 1px solid #DDDDDD; }
-                QPushButton { background-color: transparent; border: none; border-radius: 4px; padding: 5px; }
-                QPushButton:hover { background-color: #E9ECEF; }
-                QPushButton:checked { background-color: #4BBEFF; }
-                QLabel { color: #555555; font-weight: bold; }
-            """)
+        bg_color = "#121212" if is_dark else "#F8F9FA"
+        border_color = "#2D2D2D" if is_dark else "#CCCCCC"
+        label_color = "#AAAAAA" if is_dark else "#555555"
+        btn_hover = "#2A2A2A" if is_dark else "#E9ECEF"
 
+        self.setStyleSheet(f"""
+            QWidget#mainToolbar {{ 
+                background-color: {bg_color}; 
+                border-right: 1px solid {border_color}; 
+            }}
+            QLabel {{ color: {label_color}; }}
+            QPushButton {{ background-color: transparent; border: none; padding: 5px; }}
+            QPushButton:hover {{ background-color: {btn_hover}; }}
+            QPushButton:checked {{ background-color: #4BBEFF; }}
+        """)
+
+
+# ==========================================
+# 2. PROPERTIES PANEL (BẢNG THUỘC TÍNH)
+# ==========================================
 class PropertiesPanel(QFrame):
     def __init__(self, canvas):
         super().__init__()
         self.canvas = canvas
-        self.setFixedWidth(240) # Mở rộng thêm một chút để chứa đủ nút
+        self.setFixedWidth(240)
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self.setObjectName("rightPanel")
         self.init_ui()
         self.update_panel_state([])
@@ -118,10 +137,9 @@ class PropertiesPanel(QFrame):
         layout.addWidget(line)
 
     def _create_labeled_widget(self, label_text, widget):
-        """Tạo nhanh một cụm gồm Label nhỏ phía trên và Widget phía dưới"""
         v_layout = QVBoxLayout()
         v_layout.setContentsMargins(0, 0, 0, 0)
-        v_layout.setSpacing(4) # <-- THÊM DÒNG NÀY: Ép chữ sát vào widget
+        v_layout.setSpacing(4)
         lbl = QLabel(f"<b style='color:#888; font-size: 9px;'>{label_text}</b>")
         v_layout.addWidget(lbl)
         v_layout.addWidget(widget)
@@ -136,19 +154,13 @@ class PropertiesPanel(QFrame):
         layout.addWidget(title)
         self._add_separator(layout)
 
-        # ==================================================
-        # QSTACKEDWIDGET: VŨ KHÍ LẬT TRANG GIAO DIỆN
-        # ==================================================
         self.stacked_widget = QStackedWidget()
 
-        # --------------------------------------------------
-        # TRANG 1: THUỘC TÍNH HÌNH KHỐI (SHAPE)
-        # --------------------------------------------------
+        # --- TRANG 1: SHAPE PROPERTIES ---
         self.shape_page = QWidget()
         shape_layout = QVBoxLayout(self.shape_page)
         shape_layout.setContentsMargins(0, 0, 0, 0)
-
-        shape_layout.setSpacing(15) 
+        shape_layout.setSpacing(15)
         shape_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         color_section = QWidget()
@@ -158,121 +170,109 @@ class PropertiesPanel(QFrame):
         self.fill_picker = ColorPickerWidget("#4BBEFF", self.canvas.change_color)
         color_layout.addLayout(self._create_labeled_widget("FILL", self.fill_picker))
 
-        self.stroke_picker = ColorPickerWidget("#ADC6FF", self.canvas.change_stroke_color)
-        color_layout.addLayout(self._create_labeled_widget("STROKE", self.stroke_picker))
-        
+        self.stroke_picker = ColorPickerWidget(
+            "#ADC6FF", self.canvas.change_stroke_color
+        )
+        color_layout.addLayout(
+            self._create_labeled_widget("STROKE", self.stroke_picker)
+        )
+
         shape_layout.addWidget(color_section)
         self._add_separator(shape_layout)
 
         self.stroke_width_widget = StrokeWidthWidget(2, self.canvas.set_stroke_width)
         shape_layout.addSpacing(10)
-        shape_layout.addLayout(self._create_labeled_widget("STROKE WIDTH", self.stroke_width_widget))
+        shape_layout.addLayout(
+            self._create_labeled_widget("STROKE WIDTH", self.stroke_width_widget)
+        )
 
-        # --------------------------------------------------
-        # TRANG 2: THUỘC TÍNH VĂN BẢN (TEXT)
-        # --------------------------------------------------
+        # --- TRANG 2: TEXT PROPERTIES ---
         self.text_page = QWidget()
         text_layout = QVBoxLayout(self.text_page)
         text_layout.setContentsMargins(0, 0, 0, 0)
-
         text_layout.setSpacing(15)
         text_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        # 1. Text Color
-        self.text_color_picker = ColorPickerWidget("#FFFFFF", self.canvas.change_text_color)
-        text_layout.addLayout(self._create_labeled_widget("TEXT COLOR", self.text_color_picker))
+        self.text_color_picker = ColorPickerWidget(
+            "#FFFFFF", self.canvas.change_text_color
+        )
+        text_layout.addLayout(
+            self._create_labeled_widget("TEXT COLOR", self.text_color_picker)
+        )
         text_layout.addSpacing(10)
 
-        # 2. Font Family
         self.font_combo = QFontComboBox()
-        self.font_combo.setStyleSheet("background-color: #1E1E1E; color: white; border: 1px solid #444; border-radius: 3px; min-height: 25px;")
         self.font_combo.currentFontChanged.connect(self.canvas.change_font_family)
-        text_layout.addLayout(self._create_labeled_widget("FONT FAMILY", self.font_combo))
+        text_layout.addLayout(
+            self._create_labeled_widget("FONT FAMILY", self.font_combo)
+        )
         text_layout.addSpacing(10)
 
-       # 3. Size & Styles (B, I, U, S) chung 1 hàng
-        style_container = QWidget() # Tạo một cái hộp (Widget) để chứa
-        style_row = QHBoxLayout(style_container) # Gắn Layout vào cái hộp đó
+        # Hàng chứa Size và Style chữ
+        style_container = QWidget()
+        style_row = QHBoxLayout(style_container)
         style_row.setContentsMargins(0, 0, 0, 0)
-        
+
         self.font_size_spin = StrokeWidthWidget(16, self.canvas.change_font_size)
         style_row.addWidget(self.font_size_spin)
-        style_row.addWidget(self.font_size_spin)
-        
-        btn_style = """
-            QPushButton { background: #2A2A2A; border: 1px solid #444; border-radius: 3px; } 
-            QPushButton:hover { background: #333333; }
-            QPushButton:checked { background: #4BBEFF; border: 1px solid #4BBEFF; }
-        """
-        
-        # 1. Nút BOLD
-        self.btn_bold = QPushButton() # Bỏ chữ "B" ở đây
-        self.btn_bold.setIcon(QIcon("img/bold.svg")) # Đảm bảo tên file SVG của bạn khớp nhé
-        self.btn_bold.setToolTip("Bold (In đậm)")
-        self.btn_bold.setCheckable(True)
-        self.btn_bold.setFixedSize(28, 25) # Nới rộng xíu cho vuông vắn với icon
-        self.btn_bold.setStyleSheet(btn_style)
-        self.btn_bold.clicked.connect(lambda: self.canvas.toggle_font_style('bold', self.btn_bold.isChecked()))
-        
-        # 2. Nút ITALIC
-        self.btn_italic = QPushButton()
-        self.btn_italic.setIcon(QIcon("img/italic.svg"))
-        self.btn_italic.setToolTip("Italic (In nghiêng)")
-        self.btn_italic.setCheckable(True)
-        self.btn_italic.setFixedSize(28, 25)
-        self.btn_italic.setStyleSheet(btn_style)
-        self.btn_italic.clicked.connect(lambda: self.canvas.toggle_font_style('italic', self.btn_italic.isChecked()))
-        
-        # 3. Nút UNDERLINE
-        self.btn_underline = QPushButton()
-        self.btn_underline.setIcon(QIcon("img/underline.svg"))
-        self.btn_underline.setToolTip("Underline (Gạch chân)")
-        self.btn_underline.setCheckable(True)
-        self.btn_underline.setFixedSize(28, 25)
-        self.btn_underline.setStyleSheet(btn_style)
-        self.btn_underline.clicked.connect(lambda: self.canvas.toggle_font_style('underline', self.btn_underline.isChecked()))
-        
-        # 4. Nút STRIKETHROUGH
-        self.btn_strike = QPushButton()
-        self.btn_strike.setIcon(QIcon("img/strikethrough.svg")) 
-        self.btn_strike.setToolTip("Strikethrough (Gạch ngang)")
-        self.btn_strike.setCheckable(True)
-        self.btn_strike.setFixedSize(28, 25)
-        self.btn_strike.setStyleSheet(btn_style)
-        self.btn_strike.clicked.connect(lambda: self.canvas.toggle_font_style('strike', self.btn_strike.isChecked()))
-        
-        # Add vào layout
-        style_row.addWidget(self.btn_bold)
-        style_row.addWidget(self.btn_italic)
-        style_row.addWidget(self.btn_underline)
-        style_row.addWidget(self.btn_strike)
-        
-        style_row.addWidget(self.btn_bold)
-        style_row.addWidget(self.btn_italic)
-        style_row.addWidget(self.btn_underline)
-        style_row.addWidget(self.btn_strike)
-        
-        text_layout.addLayout(self._create_labeled_widget("SIZE & STYLE", style_container))
 
-        # Đưa 2 trang vào Stack
+        # Nút B, I, U, S (Đã xóa các dòng bị lặp 2 lần)
+        self.btn_bold = self._create_style_btn(
+            "bold.svg",
+            "Bold",
+            lambda: self.canvas.toggle_font_style("bold", self.btn_bold.isChecked()),
+        )
+        self.btn_italic = self._create_style_btn(
+            "italic.svg",
+            "Italic",
+            lambda: self.canvas.toggle_font_style(
+                "italic", self.btn_italic.isChecked()
+            ),
+        )
+        self.btn_underline = self._create_style_btn(
+            "underline.svg",
+            "Underline",
+            lambda: self.canvas.toggle_font_style(
+                "underline", self.btn_underline.isChecked()
+            ),
+        )
+        self.btn_strike = self._create_style_btn(
+            "strikethrough.svg",
+            "Strikethrough",
+            lambda: self.canvas.toggle_font_style(
+                "strike", self.btn_strike.isChecked()
+            ),
+        )
+
+        style_row.addWidget(self.btn_bold)
+        style_row.addWidget(self.btn_italic)
+        style_row.addWidget(self.btn_underline)
+        style_row.addWidget(self.btn_strike)
+
+        text_layout.addLayout(
+            self._create_labeled_widget("SIZE & STYLE", style_container)
+        )
+
         self.stacked_widget.addWidget(self.shape_page)
         self.stacked_widget.addWidget(self.text_page)
         layout.addWidget(self.stacked_widget)
-        
+
         self._add_separator(layout)
 
-        # --------------------------------------------------
-        # OPACITY (LUÔN HIỆN Ở DƯỚI CÙNG CHO CẢ SHAPE & TEXT)
-        # --------------------------------------------------
+        # --- OPACITY ---
         self.opacity_container = QWidget()
         op_v_layout = QVBoxLayout(self.opacity_container)
         op_v_layout.setContentsMargins(0, 5, 0, 5)
 
         op_header = QHBoxLayout()
-        op_header.addWidget(QLabel("<b style='color:#888; font-size: 9px;'>OPACITY</b>"))
+        op_header.addWidget(
+            QLabel("<b style='color:#888; font-size: 9px;'>OPACITY</b>")
+        )
         op_header.addStretch()
         self.opacity_label = QLabel("100%")
-        self.opacity_label.setStyleSheet("color: white; font-size: 10px;")
+        self.opacity_label.setStyleSheet(
+            "font-size: 10px;"
+        )  # Bỏ màu cứng để đổi theo theme
         op_header.addWidget(self.opacity_label)
 
         self.opacity_slider = QSlider(Qt.Orientation.Horizontal)
@@ -283,24 +283,37 @@ class PropertiesPanel(QFrame):
         op_v_layout.addLayout(op_header)
         op_v_layout.addWidget(self.opacity_slider)
         layout.addWidget(self.opacity_container)
-
         layout.addStretch()
 
-    # --------------------------------------------------
-    # LOGIC CHUYỂN TRANG THÔNG MINH KHI CLICK ITEM
-    # --------------------------------------------------
+    def _create_style_btn(self, icon_name, tooltip, callback):
+        """Hàm phụ trợ rút gọn code tạo nút Style"""
+        btn = QPushButton()
+        btn.setIcon(QIcon(f"img/{icon_name}"))
+        btn.setToolTip(tooltip)
+        btn.setCheckable(True)
+        btn.setFixedSize(28, 25)
+        btn.clicked.connect(callback)
+        return btn
+
     def update_panel_state(self, selected_items):
         has_selection = len(selected_items) > 0
         self.stacked_widget.setEnabled(has_selection)
         self.opacity_container.setEnabled(has_selection)
-        
+
         if has_selection:
-            # Xóa hiệu ứng mờ cho các khu vực chỉnh sửa
             self.stacked_widget.setGraphicsEffect(None)
             self.opacity_container.setGraphicsEffect(None)
-            
             item = selected_items[0]
-            
+
+            # --- ĐỒNG BỘ OPACITY (Cho cả Text lẫn Shape) ---
+            self.opacity_slider.blockSignals(
+                True
+            )  # Khóa signal để thanh trượt không tự kích hoạt hàm thay đổi
+            current_opacity = int(item.opacity() * 100)
+            self.opacity_slider.setValue(current_opacity)
+            self.opacity_label.setText(f"{current_opacity}%")
+            self.opacity_slider.blockSignals(False)
+
             if isinstance(item, QGraphicsTextItem):
                 self.stacked_widget.setCurrentWidget(self.text_page)
                 font = item.font()
@@ -310,24 +323,59 @@ class PropertiesPanel(QFrame):
                 self.btn_italic.setChecked(font.italic())
                 self.btn_underline.setChecked(font.underline())
                 self.btn_strike.setChecked(font.strikeOut())
-                
+
                 color_hex = item.defaultTextColor().name().upper()
                 self.text_color_picker.hex_input.blockSignals(True)
                 self.text_color_picker.hex_input.setText(color_hex)
                 self.text_color_picker.update_button_style(color_hex)
                 self.text_color_picker.current_color = color_hex
                 self.text_color_picker.hex_input.blockSignals(False)
-                
+
             else:
                 self.stacked_widget.setCurrentWidget(self.shape_page)
-                if hasattr(item, 'pen'):
-                    self.stroke_width_widget.input.setText(str(int(item.pen().width())))
+
+                # --- ĐỒNG BỘ STROKE (Màu viền & Độ dày) ---
+                if hasattr(item, "pen"):
+                    pen = item.pen()
+                    self.stroke_width_widget.input.setText(str(int(pen.width())))
+
+                    stroke_color = pen.color()
+                    # Nếu alpha = 0 tức là trong suốt
+                    stroke_hex = (
+                        "transparent"
+                        if stroke_color.alpha() == 0 or pen.style() == Qt.PenStyle.NoPen
+                        else stroke_color.name().upper()
+                    )
+
+                    self.stroke_picker.hex_input.blockSignals(True)
+                    self.stroke_picker.hex_input.setText(stroke_hex)
+                    self.stroke_picker.update_button_style(stroke_hex)
+                    self.stroke_picker.current_color = stroke_hex
+                    self.stroke_picker.hex_input.blockSignals(False)
+
+                # --- ĐỒNG BỘ FILL (Màu nền) ---
+                if hasattr(item, "brush"):
+                    brush = item.brush()
+                    fill_color = brush.color()
+
+                    # Kiểm tra xem hình này có màu nền hay là dạng trong suốt (transparent)
+                    fill_hex = (
+                        "transparent"
+                        if fill_color.alpha() == 0
+                        or brush.style() == Qt.BrushStyle.NoBrush
+                        else fill_color.name().upper()
+                    )
+
+                    self.fill_picker.hex_input.blockSignals(True)
+                    self.fill_picker.hex_input.setText(fill_hex)
+                    self.fill_picker.update_button_style(fill_hex)
+                    self.fill_picker.current_color = fill_hex
+                    self.fill_picker.hex_input.blockSignals(False)
         else:
-            # Nếu không chọn gì, chỉ làm mờ khu vực Stack và Opacity, chừa nút Export ra
             eff1 = QGraphicsOpacityEffect()
             eff1.setOpacity(0.4)
             self.stacked_widget.setGraphicsEffect(eff1)
-            
+
             eff2 = QGraphicsOpacityEffect()
             eff2.setOpacity(0.4)
             self.opacity_container.setGraphicsEffect(eff2)
@@ -335,45 +383,62 @@ class PropertiesPanel(QFrame):
     def update_opacity_logic(self, value):
         self.opacity_label.setText(f"{value}%")
         self.canvas.set_opacity(value)
-    def set_theme(self, is_dark):
-        self.setObjectName("mainProperties")
-        if is_dark:
-            self.setStyleSheet("""
-                #mainProperties { background-color: #121212; border-left: 1px solid #2D2D2D; }
-                QLabel { color: #E0E0E0; }
-                QLineEdit, QComboBox, QSpinBox {
-                    background-color: #2A2A2A; color: white; 
-                    border: 1px solid #444; border-radius: 3px; padding: 4px;
-                }
-                QPushButton { 
-                    background-color: #2A2A2A; color: white; 
-                    border: 1px solid #444; border-radius: 3px; padding: 5px;
-                }
-                QPushButton:hover { background-color: #333333; }
-                QPushButton:checked { background-color: #4BBEFF; border: 1px solid #4BBEFF; color: black; }
-            """)
-        else:
-            self.setStyleSheet("""
-                #mainProperties { background-color: #F8F9FA; border-left: 1px solid #DDDDDD; }
-                QLabel { color: #333333; }
-                QLineEdit, QComboBox, QSpinBox {
-                    background-color: #FFFFFF; color: #000000; 
-                    border: 1px solid #CCC; border-radius: 3px; padding: 4px;
-                }
-                QPushButton { 
-                    background-color: #FFFFFF; color: #333333; 
-                    border: 1px solid #CCC; border-radius: 3px; padding: 5px;
-                }
-                QPushButton:hover { background-color: #E9ECEF; }
-                QPushButton:checked { background-color: #4BBEFF; border: 1px solid #4BBEFF; color: white; }
-            """)
 
+    def set_theme(self, is_dark):
+        """Hàm cấp màu chuẩn xác cho cả bảng Properties"""
+        self.setObjectName("mainProperties")
+
+        bg_color = "#121212" if is_dark else "#F8F9FA"
+        panel_border = "#2D2D2D" if is_dark else "#CCCCCC"
+        input_bg = "#2A2A2A" if is_dark else "#FFFFFF"
+        input_color = "white" if is_dark else "#000000"
+        input_border = "#444" if is_dark else "#CCC"
+        label_color = "#E0E0E0" if is_dark else "#333333"
+        btn_bg = "#2A2A2A" if is_dark else "#FFFFFF"
+        btn_hover_bg = "#333333" if is_dark else "#E9ECEF"
+        btn_hover_border = "#4BBEFF"
+
+        self.setStyleSheet(f"""
+            QWidget#mainProperties {{ 
+                background-color: {bg_color}; 
+                border-left: 1px solid {panel_border}; 
+            }}
+            QLabel {{ color: {label_color}; }}
+            QLineEdit, QComboBox, QSpinBox {{
+                background-color: {input_bg}; color: {input_color}; 
+                border: 1px solid {input_border}; border-radius: 3px; padding: 4px;
+            }}
+            QPushButton {{ 
+                background-color: {btn_bg}; color: {input_color}; 
+                border: 1px solid {input_border}; border-radius: 3px; padding: 5px;
+            }}
+            QPushButton:hover {{ background-color: {btn_hover_bg}; border: 1px solid {btn_hover_border}; }}
+            QPushButton:checked {{ background-color: #4BBEFF; border: 1px solid #4BBEFF; color: black; }}
+            
+            /* --- CSS CHO NÚT SPIN UP/DOWN NHÀ LÀM --- */
+            QPushButton#spinButton {{
+                background-color: {input_bg};
+                color: {input_color};
+                border: 1px solid {input_border};
+                padding: 1px;
+                border-radius: 2px;
+            }}
+            QPushButton#spinButton:hover {{
+                background-color: {btn_hover_bg};
+                border: 1px solid {btn_hover_border};
+            }}
+        """)
+
+
+# ==========================================
+# 3. CÁC COMPONENT CUSTOM DÙNG CHUNG
+# ==========================================
 class ColorPickerWidget(QWidget):
     def __init__(self, initial_color="#FFFFFF", on_color_change=None):
         super().__init__()
         self.on_color_change = on_color_change
         self.current_color = initial_color
-        
+
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(5)
@@ -394,7 +459,9 @@ class ColorPickerWidget(QWidget):
         layout.addStretch()
 
     def update_button_style(self, color):
-        self.btn_color.setStyleSheet(f"background-color: {color}; border: 1px solid #444; border-radius: 3px;")
+        self.btn_color.setStyleSheet(
+            f"background-color: {color}; border: 1px solid #444; border-radius: 3px;"
+        )
 
     def open_dialog(self):
         color = QColorDialog.getColor(QColor(self.current_color), self, "Pick Color")
@@ -402,61 +469,76 @@ class ColorPickerWidget(QWidget):
             self.hex_input.setText(color.name().upper())
 
     def on_hex_changed(self, text):
-        if len(text) == 7 and text.startswith('#'):
+        if len(text) == 7 and text.startswith("#"):
             self.current_color = text
             self.update_button_style(text)
             if self.on_color_change:
                 self.on_color_change(text)
 
+    def set_color(self, hex_color):
+        # self.current_color = hex_color
+        self.hex_input.setText(hex_color.upper())
+
+
 class StrokeWidthWidget(QWidget):
-    def __init__(self, initial_value=2, on_change=None):
+    def __init__(self, value, callback):
         super().__init__()
-        self.on_change = on_change
-        self.value = initial_value
+        self.value = value
+        self.callback = callback
 
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(2)
+        self.main_layout = QHBoxLayout(self)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_layout.setSpacing(1)
 
-        self.input = QLineEdit(str(self.value))
+        self.input = QLineEdit(str(value))
         self.input.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.input.setObjectName("strokeWidthInput")
-        self.input.textChanged.connect(self.handle_input)
+        self.input.setValidator(QIntValidator(1, 200))
+        self.input.setFixedWidth(40)
+        self.input.editingFinished.connect(self.set_value_from_input)
+        self.main_layout.addWidget(self.input)
 
-        # Cụm nút Up/Down
-        btns = QWidget()
-        btn_layout = QVBoxLayout(btns)
+        btn_container = QWidget()
+        btn_layout = QVBoxLayout(btn_container)
         btn_layout.setContentsMargins(0, 0, 0, 0)
         btn_layout.setSpacing(0)
 
-        self.up = QPushButton("▲")
-        self.down = QPushButton("▼")
-        for b in [self.up, self.down]:
-            b.setFixedSize(18, 12)
-            b.setObjectName("widthStepBtn")
+        self.icon_size = QSize(12, 12)
 
-        self.up.clicked.connect(lambda: self.step(1))
-        self.down.clicked.connect(lambda: self.step(-1))
+        self.btn_up = QPushButton()
+        self.btn_up.setObjectName("spinButton")
+        # Đã đổi thành up_arrow.svg (dùng gạch dưới) để chuẩn với các file trước
+        self.btn_up.setIcon(QIcon("img/up-arrow.svg"))
+        self.btn_up.setIconSize(self.icon_size)
+        self.btn_up.setFixedSize(18, 14)
+        self.btn_up.clicked.connect(lambda: self.step(1))
+        btn_layout.addWidget(self.btn_up)
 
-        btn_layout.addWidget(self.up)
-        btn_layout.addWidget(self.down)
+        self.btn_down = QPushButton()
+        self.btn_down.setObjectName("spinButton")
+        self.btn_down.setIcon(QIcon("img/down-arrow.svg"))
+        self.btn_down.setIconSize(self.icon_size)
+        self.btn_down.setFixedSize(18, 14)
+        self.btn_down.clicked.connect(lambda: self.step(-1))
+        btn_layout.addWidget(self.btn_down)
 
-        layout.addWidget(self.input)
-        layout.addWidget(btns)
-        layout.addStretch()
+        self.main_layout.addWidget(btn_container)
 
     def step(self, delta):
         new_val = max(1, min(200, self.value + delta))
+        self.value = new_val
         self.input.setText(str(new_val))
+        self.callback(new_val)
 
-    def handle_input(self, text):
+    def set_value_from_input(self):
         try:
-            val = int(text)
-            self.value = val
-            if self.on_change:
-                self.on_change(val)
+            val = int(self.input.text())
+            new_val = max(1, min(200, val))
+            self.value = new_val
+            self.input.setText(str(new_val))
+            self.callback(new_val)
         except ValueError:
             pass
+
 
 class NotificationToast(QFrame):
     def __init__(self, parent):
@@ -471,19 +553,18 @@ class NotificationToast(QFrame):
             }
             QLabel { color: white; font-size: 11px; border: none; }
         """)
-        
+
         self.layout = QHBoxLayout(self)
-        self.icon_label = QLabel("⏳") # Icon loading tạm thời
+        self.icon_label = QLabel("⏳")
         self.text_label = QLabel("Đang lưu...")
         self.layout.addWidget(self.icon_label)
         self.layout.addWidget(self.text_label)
-        
-        self.hide() # Mặc định ẩn
+
+        self.hide()
 
     def show_message(self, text, icon="✅", duration=2000):
         self.text_label.setText(text)
         self.icon_label.setText(icon)
         self.show()
-        self.raise_() # Đảm bảo nằm trên cùng
-        # Tự động ẩn sau duration ms
-        QTimer.singleShot(duration, self.hide)           
+        self.raise_()
+        QTimer.singleShot(duration, self.hide)
